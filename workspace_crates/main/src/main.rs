@@ -3,6 +3,8 @@ use launcher::LauncherPlugin;
 use shared::{AppConfig, AppState};
 
 fn main() {
+    println!("Hello, world!");
+    dotenvy::dotenv().ok();
     let app_config = AppConfig {
         auth_server_url: std::env::var("AUTH_SERVER_URL")
             .expect("AUTH_SERVER_URL must be set in .env"),

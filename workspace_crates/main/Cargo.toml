@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+dotenvy = { workspace = true }
 bevy = { workspace = true }
 launcher = { workspace = true }
 shared = { workspace = true }
