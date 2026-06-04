@@ -1,4 +1,4 @@
-use auth_system_structs::public_api::{LoginErrorKind, LoginSuccess};
+use auth_system_structs::public_api::{LoginErrorKind, LoginResponse, LoginSuccess};
 use bevy::prelude::*;
 use shared::AppState;
 use std::sync::{Arc, Mutex};
@@ -52,8 +52,10 @@ impl Default for CursorBlink {
     }
 }
 
+pub struct CouldNotContactAuthServer(pub String);
+
 #[derive(Resource, Clone)]
-pub struct LoginResultQueue(pub Arc<Mutex<Vec<Result<LoginSuccess, LoginErrorKind>>>>);
+pub struct LoginResultQueue(pub Arc<Mutex<Vec<Result<LoginResponse, CouldNotContactAuthServer>>>>);
 
 impl Default for LoginResultQueue {
     fn default() -> Self {

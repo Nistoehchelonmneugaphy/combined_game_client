@@ -1,13 +1,13 @@
 use auth_system_structs::public_api::{
-    LoginErrorKind, LoginRequest, LoginResponse, PublicAPIAction::Login,
+    LoginErrorKind, LoginRequest, LoginResponse, LoginSuccess, PublicAPIAction::Login,
 };
 use bevy::prelude::*;
 use shared::{AppConfig, AppState};
 
 use crate::structs::{
-    ConnectButton, CursorBlink, ErrorLabel, FormField, LauncherState, LoginButton, LoginForm,
-    LoginResultQueue, PasswordInput, PasswordInputFieldCursor, PasswordText, Session,
-    UsernameInput, UsernameInputFieldCursor, UsernameText,
+    ConnectButton, CouldNotContactAuthServer, CursorBlink, ErrorLabel, FormField, LauncherState,
+    LoginButton, LoginForm, LoginResultQueue, PasswordInput, PasswordInputFieldCursor,
+    PasswordText, Session, UsernameInput, UsernameInputFieldCursor, UsernameText,
 };
 mod structs;
 
@@ -320,20 +320,18 @@ fn login_request(
                     return;
                 };
                 println!("login resp: {resp:#?}");
-                match resp {
-                    LoginResponse::Success(s) => queue.push(Ok(s)),
-                    LoginResponse::Error(e) => queue.push(Err(e.kind)),
-                }
+                queue.push(Ok(resp));
             }
             Err(_) => {
                 println!("req err");
+                queue.push(Err(CouldNotContactAuthServer("Yeah...".to_string())));
             }
         }
     });
 }
 
 fn poll_login_response(
-    mut queue: ResMut<LoginResultQueue>,
+    queue: ResMut<LoginResultQueue>,
     mut commands: Commands,
     mut next_state: ResMut<NextState<LauncherState>>,
     mut error_q: Query<&mut Text, With<ErrorLabel>>,
@@ -342,26 +340,34 @@ fn poll_login_response(
 
     for result in q.drain(..) {
         match result {
-            Ok(success) => {
-                commands.insert_resource(Session {
-                    token: success.token,
-                    user_id: success.user_id,
-                });
+            Err(e) => {
                 if let Ok(mut text) = error_q.single_mut() {
-                    **text = "Login successful".to_string();
-                }
-                next_state.set(LauncherState::ServerSelect);
-            }
-            Err(err) => {
-                println!("Login failed: {err:?}");
-                let msg = match err {
-                    LoginErrorKind::InvalidCredentials => "Invalid username or password.",
-                    LoginErrorKind::SubscriptionExpired => "Subscription expired.",
-                };
-                if let Ok(mut text) = error_q.single_mut() {
-                    **text = msg.to_string();
+                    **text = "Couldn't contact the auth server".to_string();
                 }
             }
+            Ok(login_response) => match login_response {
+                LoginResponse::Success(success) => {
+                    commands.insert_resource(Session {
+                        token: success.token,
+                        user_id: success.user_id,
+                    });
+                    if let Ok(mut text) = error_q.single_mut() {
+                        **text = "Login successful".to_string();
+                    }
+                    next_state.set(LauncherState::ServerSelect);
+                }
+                LoginResponse::Error(err) => {
+                    let err_kind = err.kind;
+                    println!("Login failed: {err_kind:?}");
+                    let msg = match err_kind {
+                        LoginErrorKind::InvalidCredentials => "Invalid username or password.",
+                        LoginErrorKind::SubscriptionExpired => "Subscription expired.",
+                    };
+                    if let Ok(mut text) = error_q.single_mut() {
+                        **text = msg.to_string();
+                    }
+                }
+            },
         }
     }
 }
