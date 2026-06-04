@@ -1,4 +1,4 @@
-use auth_system_structs::public_api::{LoginErrorKind, LoginResponse, LoginSuccess};
+use auth_system_structs::public_api::LoginResponse;
 use bevy::prelude::*;
 use shared::AppState;
 use std::sync::{Arc, Mutex};

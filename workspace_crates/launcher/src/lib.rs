@@ -1,5 +1,5 @@
 use auth_system_structs::public_api::{
-    LoginErrorKind, LoginRequest, LoginResponse, LoginSuccess, PublicAPIAction::Login,
+    LoginErrorKind, LoginRequest, LoginResponse, PublicAPIAction::Login,
 };
 use bevy::prelude::*;
 use shared::{AppConfig, AppState};
@@ -340,7 +340,7 @@ fn poll_login_response(
 
     for result in q.drain(..) {
         match result {
-            Err(e) => {
+            Err(_e) => {
                 if let Ok(mut text) = error_q.single_mut() {
                     **text = "Couldn't contact the auth server".to_string();
                 }
@@ -380,7 +380,7 @@ fn handle_server_connect(
         if *interaction != Interaction::Pressed {
             continue;
         }
-        let Some(session) = &session else {
+        let Some(_session) = &session else {
             continue;
         };
         // When I will combine the launcher into a single app together with the server client and match client, I will add here a state switch to server and set the session resource or something.
