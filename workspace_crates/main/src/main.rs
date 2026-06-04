@@ -2,6 +2,7 @@ use bevy::{prelude::*, window::WindowResolution};
 use launcher::LauncherPlugin;
 use shared::{AppConfig, AppState};
 
+#[bevy_main]
 fn main() {
     println!("Hello, world!");
     dotenvy::dotenv().ok();
