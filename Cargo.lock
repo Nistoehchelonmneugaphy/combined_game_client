@@ -2591,15 +2591,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "game_client"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "launcher",
- "shared",
-]
-
-[[package]]
 name = "gethostname"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3286,6 +3277,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d640282b302c0bb0a2a8e0233ead9035e3bed871f0b7e81fe4a1ec829765db44"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "main"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "launcher",
+ "shared",
 ]
 
 [[package]]
