@@ -15,6 +15,7 @@ pub struct LauncherPlugin;
 
 impl Plugin for LauncherPlugin {
     fn build(&self, app: &mut App) {
+        app.add_sub_state::<LauncherState>();
         app.add_systems(OnEnter(AppState::Launcher), setup_launcher_ui);
         app.add_systems(OnExit(AppState::Launcher), teardown_launcher_ui);
         app.add_systems(
