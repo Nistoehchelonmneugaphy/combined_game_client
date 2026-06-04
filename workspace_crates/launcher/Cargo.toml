@@ -5,5 +5,7 @@ edition = "2024"
 
 [dependencies]
 bevy = { workspace = true }
+serde_json = { workspace = true }
+ehttp = { workspace = true }
 shared = { workspace = true }
 auth_system_structs = { workspace = true }

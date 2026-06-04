@@ -7,3 +7,8 @@ pub enum AppState {
     Server,
     Match,
 }
+
+#[derive(Resource, Clone, Debug)]
+pub struct AppConfig {
+    pub auth_server_url: String,
+}

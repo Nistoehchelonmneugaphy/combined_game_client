@@ -1,8 +1,13 @@
+use auth_system_structs::public_api::{
+    LoginErrorKind, LoginRequest, LoginResponse, PublicAPIAction::Login,
+};
 use bevy::prelude::*;
-use shared::AppState;
+use shared::{AppConfig, AppState};
 
 use crate::structs::{
-    CursorBlink, ErrorLabel, LoginButton, LoginForm, LoginResultQueue, PasswordInput, PasswordInputFieldCursor, PasswordText, UsernameInput, UsernameInputFieldCursor, UsernameText
+    ConnectButton, CursorBlink, ErrorLabel, FormField, LauncherState, LoginButton, LoginForm,
+    LoginResultQueue, PasswordInput, PasswordInputFieldCursor, PasswordText, Session,
+    UsernameInput, UsernameInputFieldCursor, UsernameText,
 };
 mod structs;
 
@@ -12,10 +17,31 @@ impl Plugin for LauncherPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(AppState::Launcher), setup_launcher_ui);
         app.add_systems(OnExit(AppState::Launcher), teardown_launcher_ui);
+        app.add_systems(
+            Update,
+            (
+                handle_text_input,
+                blink_cursor,
+                handle_login_button,
+                poll_login_response,
+                handle_server_connect,
+            )
+                .chain()
+                .run_if(in_state(AppState::Launcher)),
+        );
     }
 }
 
-fn setup_launcher_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_launcher_ui(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut windows: Query<&mut Window>,
+) {
+    if let Ok(mut window) = windows.single_mut() {
+        window.title = "Launcher".to_string();
+        window.resolution.set(480.0, 320.0);
+    };
+
     commands.spawn((
         DespawnOnExit(AppState::Launcher),
         AudioPlayer::new(asset_server.load("audio/bemcupa_petos.mp3")),
@@ -25,7 +51,6 @@ fn setup_launcher_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.init_resource::<LoginForm>();
     commands.init_resource::<CursorBlink>();
     commands.init_resource::<LoginResultQueue>();
-
 
     // Root
     commands
@@ -138,4 +163,220 @@ fn teardown_launcher_ui(mut commands: Commands) {
     commands.remove_resource::<LoginForm>();
     commands.remove_resource::<CursorBlink>();
     commands.remove_resource::<LoginResultQueue>();
+}
+
+fn handle_text_input(
+    mut form: ResMut<LoginForm>,
+    mut evr: MessageReader<bevy::input::keyboard::KeyboardInput>,
+    username_query: Query<&Interaction, With<UsernameInput>>,
+    password_query: Query<&Interaction, With<PasswordInput>>,
+    mut username_text: Query<&mut Text, (With<UsernameText>, Without<PasswordText>)>,
+    mut password_text: Query<&mut Text, (With<PasswordText>, Without<UsernameText>)>,
+) {
+    if username_query
+        .single()
+        .is_ok_and(|i| *i == Interaction::Pressed)
+    {
+        form.focused = FormField::Username;
+    }
+    if password_query
+        .single()
+        .is_ok_and(|i| *i == Interaction::Pressed)
+    {
+        form.focused = FormField::Password;
+    }
+
+    for ev in evr.read() {
+        if ev.state != bevy::input::ButtonState::Pressed {
+            continue;
+        }
+        if ev.logical_key == bevy::input::keyboard::Key::Backspace {
+            let target = match form.focused {
+                FormField::Username => &mut form.username,
+                FormField::Password => &mut form.password,
+            };
+            target.pop();
+            continue;
+        }
+
+        // do not want to put "enter" into the text fields
+        if ev.logical_key == bevy::input::keyboard::Key::Enter {
+            continue;
+        }
+
+        // Use the `text` field for printable characters
+        if let Some(ref s) = ev.text {
+            let target = match form.focused {
+                FormField::Username => &mut form.username,
+                FormField::Password => &mut form.password,
+            };
+            target.push_str(s);
+        }
+    }
+
+    // Sync to UI - now these queries will actually find the entities
+    if let Ok(mut text) = username_text.single_mut() {
+        text.0 = form.username.clone();
+    }
+    if let Ok(mut text) = password_text.single_mut() {
+        text.0 = "*".repeat(form.password.len());
+    }
+}
+
+fn blink_cursor(
+    time: Res<Time>,
+    mut blink: ResMut<CursorBlink>,
+    form: Res<LoginForm>,
+    mut username_cursor: Query<
+        &mut Visibility,
+        (
+            With<UsernameInputFieldCursor>,
+            Without<PasswordInputFieldCursor>,
+        ),
+    >,
+    mut password_cursor: Query<
+        &mut Visibility,
+        (
+            With<PasswordInputFieldCursor>,
+            Without<UsernameInputFieldCursor>,
+        ),
+    >,
+) {
+    blink.0.tick(time.delta());
+
+    let (mut active, mut inactive) = match form.focused {
+        FormField::Username => (
+            username_cursor.single_mut().unwrap(),
+            password_cursor.single_mut().unwrap(),
+        ),
+        FormField::Password => (
+            password_cursor.single_mut().unwrap(),
+            username_cursor.single_mut().unwrap(),
+        ),
+    };
+
+    // Inactive field cursor always hidden
+    *inactive = Visibility::Hidden;
+
+    // Active field cursor blinks
+    if blink.0.just_finished() {
+        *active = match *active {
+            Visibility::Hidden => Visibility::Visible,
+            _ => Visibility::Hidden,
+        };
+    }
+}
+
+fn handle_login_button(
+    mut queue: ResMut<LoginResultQueue>,
+    interaction_q: Query<&Interaction, (Changed<Interaction>, With<LoginButton>)>,
+    form: Res<LoginForm>,
+    config: Res<AppConfig>,
+    mut error_q: Query<&mut Text, With<ErrorLabel>>,
+) {
+    for interaction in &interaction_q {
+        let config = config.clone();
+        if *interaction != Interaction::Pressed {
+            continue;
+        }
+
+        if let Ok(mut text) = error_q.single_mut() {
+            **text = "".to_string();
+        }
+        let (username, password) = (form.username.clone(), form.password.clone());
+
+        login_request(&mut queue, &config.auth_server_url, &username, &password);
+    }
+}
+
+fn login_request(
+    queue: &mut ResMut<LoginResultQueue>,
+    auth_server_url: &str,
+    username: &str,
+    password: &str,
+) {
+    let body = LoginRequest {
+        username: username.to_string(),
+        password: password.to_string(),
+    };
+    let Ok(body_vec) = serde_json::to_vec(&body) else {
+        return;
+    };
+    let queue_clone = queue.clone();
+
+    let request = ehttp::Request::post(
+        auth_system_structs::public_api::get_full_url(auth_server_url.into(), Login),
+        body_vec,
+    );
+
+    ehttp::fetch(request, move |result: ehttp::Result<ehttp::Response>| {
+        let Ok(mut queue) = queue_clone.0.lock() else {
+            return;
+        };
+        match result {
+            Ok(r) => {
+                let Ok(resp) = serde_json::from_slice::<LoginResponse>(&r.bytes) else {
+                    return;
+                };
+                println!("login resp: {resp:#?}");
+                match resp {
+                    LoginResponse::Success(s) => queue.push(Ok(s)),
+                    LoginResponse::Error(e) => queue.push(Err(e.kind)),
+                }
+            }
+            Err(_) => {
+                println!("req err");
+            }
+        }
+    });
+}
+
+fn poll_login_response(
+    mut queue: ResMut<LoginResultQueue>,
+    mut commands: Commands,
+    mut next_state: ResMut<NextState<LauncherState>>,
+    mut error_q: Query<&mut Text, With<ErrorLabel>>,
+) {
+    let mut q = queue.0.lock().unwrap();
+
+    for result in q.drain(..) {
+        match result {
+            Ok(success) => {
+                commands.insert_resource(Session {
+                    token: success.token,
+                    user_id: success.user_id,
+                });
+                if let Ok(mut text) = error_q.single_mut() {
+                    **text = "Login successful".to_string();
+                }
+                next_state.set(LauncherState::ServerSelect);
+            }
+            Err(err) => {
+                println!("Login failed: {err:?}");
+                let msg = match err {
+                    LoginErrorKind::InvalidCredentials => "Invalid username or password.",
+                    LoginErrorKind::SubscriptionExpired => "Subscription expired.",
+                };
+                if let Ok(mut text) = error_q.single_mut() {
+                    **text = msg.to_string();
+                }
+            }
+        }
+    }
+}
+
+fn handle_server_connect(
+    interaction_q: Query<&Interaction, (Changed<Interaction>, With<ConnectButton>)>,
+    session: Option<Res<Session>>,
+) {
+    for interaction in &interaction_q {
+        if *interaction != Interaction::Pressed {
+            continue;
+        }
+        let Some(session) = &session else {
+            continue;
+        };
+        // When I will combine the launcher into a single app together with the server client and match client, I will add here a state switch to server and set the session resource or something.
+        unimplemented!();
+    }
 }

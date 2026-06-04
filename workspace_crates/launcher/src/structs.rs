@@ -1,5 +1,6 @@
 use auth_system_structs::public_api::{LoginErrorKind, LoginSuccess};
 use bevy::prelude::*;
+use shared::AppState;
 use std::sync::{Arc, Mutex};
 
 
@@ -58,4 +59,19 @@ impl Default for LoginResultQueue {
     fn default() -> Self {
         Self(Arc::new(Mutex::new(Vec::new())))
     }
+}
+
+#[derive(Resource)]
+pub struct Session {
+    pub token: String,
+    pub user_id: String,
+}
+
+
+#[derive(SubStates, Default, Clone, Eq, PartialEq, Hash, Debug)]
+#[source(AppState = AppState::Launcher)]
+pub enum LauncherState {
+    #[default]
+    Login,
+    ServerSelect,
 }
