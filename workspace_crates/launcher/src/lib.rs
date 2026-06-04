@@ -321,6 +321,8 @@ fn login_request(
         match result {
             Ok(r) => {
                 let Ok(resp) = serde_json::from_slice::<LoginResponse>(&r.bytes) else {
+                    println!("Could not shape response into LoginResponse.");
+                    queue.push(Err(CouldNotContactAuthServer("Yeah...".to_string())));
                     return;
                 };
                 println!("login resp: {resp:#?}");
