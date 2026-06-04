@@ -1,0 +1,1 @@
+I will copy assets from elsewhere. Maybe later on I will just embed assets into the executable, I think.
