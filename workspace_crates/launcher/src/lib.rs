@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use auth_system_structs::public_api::{
     LoginErrorKind, LoginRequest, LoginResponse, PublicAPIAction::Login,
 };
@@ -308,7 +310,7 @@ fn login_request(
     let request = ehttp::Request::post(
         auth_system_structs::public_api::get_full_url(auth_server_url.into(), Login),
         body_vec,
-    );
+    ).with_timeout(Some(Duration::from_secs(7)));
 
     ehttp::fetch(request, move |result: ehttp::Result<ehttp::Response>| {
         let Ok(mut queue) = queue_clone.0.lock() else {
