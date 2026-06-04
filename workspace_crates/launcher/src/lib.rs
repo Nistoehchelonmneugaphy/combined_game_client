@@ -313,7 +313,9 @@ fn login_request(
     ).with_timeout(Some(Duration::from_secs(7)));
 
     ehttp::fetch(request, move |result: ehttp::Result<ehttp::Response>| {
+        println!("Response:, {result:#?}");
         let Ok(mut queue) = queue_clone.0.lock() else {
+            println!("Could not get queue lock");
             return;
         };
         match result {
