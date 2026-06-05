@@ -4,11 +4,13 @@ use shared::{AppConfig, AppState};
 
 #[bevy_main]
 fn main() {
+    #[cfg(target_arch = "wasm32")]
+    console_error_panic_hook::set_once();
+
     println!("Hello, world!");
     dotenvy::dotenv().ok();
     let app_config = AppConfig {
-        auth_server_url: std::env::var("AUTH_SERVER_URL")
-            .expect("AUTH_SERVER_URL must be set in .env"),
+        auth_server_url: "http://127.0.0.1:55555".to_string(),
     };
     let mut app = App::new();
     app.insert_resource(app_config);

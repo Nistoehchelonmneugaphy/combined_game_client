@@ -389,6 +389,6 @@ fn handle_server_connect(
             continue;
         };
         // When I will combine the launcher into a single app together with the server client and match client, I will add here a state switch to server and set the session resource or something.
-        unimplemented!();
+        
     }
 }
