@@ -310,7 +310,8 @@ fn login_request(
     let request = ehttp::Request::post(
         auth_system_structs::public_api::get_full_url(auth_server_url.into(), Login),
         body_vec,
-    ).with_timeout(Some(Duration::from_secs(7)));
+    )
+    .with_timeout(Some(Duration::from_secs(7)));
 
     ehttp::fetch(request, move |result: ehttp::Result<ehttp::Response>| {
         let Ok(mut queue) = queue_clone.0.lock() else {
@@ -321,7 +322,7 @@ fn login_request(
             Ok(r) => {
                 let Ok(resp) = serde_json::from_slice::<LoginResponse>(&r.bytes) else {
                     println!("Could not shape response into LoginResponse.");
-                    queue.push(Err(CouldNotContactAuthServer("Yeah...".to_string())));
+                    queue.push(Err(CouldNotContactAuthServer));
                     return;
                 };
                 println!("login resp: {resp:#?}");
@@ -329,7 +330,7 @@ fn login_request(
             }
             Err(_) => {
                 println!("req err");
-                queue.push(Err(CouldNotContactAuthServer("Yeah...".to_string())));
+                queue.push(Err(CouldNotContactAuthServer));
             }
         }
     });
@@ -385,10 +386,10 @@ fn handle_server_connect(
         if *interaction != Interaction::Pressed {
             continue;
         }
-        let Some(_session) = &session else {
+        let Some(session) = &session else {
             continue;
         };
+        println!("{} {}", session.token, session.user_id);
         // When I will combine the launcher into a single app together with the server client and match client, I will add here a state switch to server and set the session resource or something.
-        
     }
 }

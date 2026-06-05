@@ -39,8 +39,6 @@ pub struct LoginButton;
 #[derive(Component)]
 pub struct ErrorLabel;
 #[derive(Component)]
-pub struct ServerAddressInput;
-#[derive(Component)]
 pub struct ConnectButton;
 
 
@@ -52,7 +50,7 @@ impl Default for CursorBlink {
     }
 }
 
-pub struct CouldNotContactAuthServer(pub String);
+pub struct CouldNotContactAuthServer;
 
 #[derive(Resource, Clone)]
 pub struct LoginResultQueue(pub Arc<Mutex<Vec<Result<LoginResponse, CouldNotContactAuthServer>>>>);
