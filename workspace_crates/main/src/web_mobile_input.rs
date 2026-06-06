@@ -1,7 +1,15 @@
-use bevy::{input::{ButtonState, keyboard::{Key, KeyboardInput}}, prelude::*};
-use web_sys::{HtmlInputElement, wasm_bindgen::{JsCast, prelude::Closure}};
+use bevy::{
+    input::{
+        ButtonState,
+        keyboard::{Key, KeyboardInput},
+    },
+    prelude::*,
+};
 use std::sync::Mutex;
-
+use web_sys::{
+    HtmlInputElement,
+    wasm_bindgen::{JsCast, prelude::Closure},
+};
 
 static EVENT_QUEUE: Mutex<Vec<KeyboardInput>> = Mutex::new(Vec::new());
 
@@ -30,10 +38,20 @@ fn setup_event_listeners() {
     };
 
     let input_handler = Closure::wrap(Box::new(move |e: web_sys::InputEvent| {
+        // Skip composition events (mobile IME)
+        if e.is_composing() {
+            return;
+        }
         let Some(data) = e.data() else { return };
+
+        // Clear the input element after each character to prevent accumulation
+        if let Some(el) = get_input_element() {
+            el.set_value("");
+        }
+
         for ch in data.chars() {
             if let Ok(mut queue) = EVENT_QUEUE.lock() {
-                queue.push(KeyboardInput {
+                let event = KeyboardInput {
                     key_code: KeyCode::Unidentified(
                         bevy::input::keyboard::NativeKeyCode::Unidentified,
                     ),
@@ -42,12 +60,26 @@ fn setup_event_listeners() {
                     repeat: false,
                     text: Some(ch.to_string().into()),
                     window: Entity::PLACEHOLDER,
-                });
+                };
+
+                let mut release = event.clone();
+                release.state = ButtonState::Released;
+                release.text = None;
+
+                queue.push(event);
+                queue.push(release);
             }
         }
     }) as Box<dyn FnMut(_)>);
 
     let keydown_handler = Closure::wrap(Box::new(move |e: web_sys::KeyboardEvent| {
+        if e.is_composing() {
+            return;
+        }
+        // Clear the input element after each character to prevent accumulation
+        if let Some(el) = get_input_element() {
+            el.set_value("");
+        }
         let key = e.key();
         let (key_code, logical_key) = match key.as_str() {
             "Enter" => (KeyCode::Enter, Key::Enter),
@@ -57,14 +89,20 @@ fn setup_event_listeners() {
         };
 
         if let Ok(mut queue) = EVENT_QUEUE.lock() {
-            queue.push(KeyboardInput {
+            let event = KeyboardInput {
                 key_code,
                 logical_key,
                 state: ButtonState::Pressed,
                 repeat: false,
                 text: None,
                 window: Entity::PLACEHOLDER,
-            });
+            };
+            let mut release = event.clone();
+            release.state = ButtonState::Released;
+            release.text = None;
+
+            queue.push(event);
+            queue.push(release);
         }
 
         if key == "Enter" {
