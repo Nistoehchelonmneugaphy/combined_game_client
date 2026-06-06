@@ -1,4 +1,4 @@
-use bevy::log::{LogPlugin};
+use bevy::log::LogPlugin;
 use bevy::{prelude::*, window::WindowResolution};
 use launcher::LauncherPlugin;
 use shared::AppState;
@@ -11,13 +11,14 @@ pub fn run() {
     #[cfg(target_arch = "wasm32")]
     console_error_panic_hook::set_once();
     let mut app = App::new();
-    
+
     #[cfg(target_arch = "wasm32")]
     app.add_plugins(web_mobile_input::MobileInputPlugin);
+
     // create default window will be changed later
     let window_plugin_config = WindowPlugin {
         primary_window: Some(Window {
-            prevent_default_event_handling: false, 
+            prevent_default_event_handling: false,
             title: "Placeholder title".into(),
             resolution: WindowResolution::new(800, 600),
             ..default()
