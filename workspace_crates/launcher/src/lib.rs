@@ -185,16 +185,32 @@ fn handle_text_input(
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
 
-    if username_pressed
-    {
+    if username_pressed {
         form.focused = FormField::Username;
         #[cfg(target_arch = "wasm32")]
-        web_mobile_input::show_keyboard();
-    } else if password_pressed
-    {
+        {
+            use web::is_mobile;
+            if is_mobile() {
+                web_mobile_input::show_keyboard();
+            }
+        }
+    } else if password_pressed {
         form.focused = FormField::Password;
         #[cfg(target_arch = "wasm32")]
-        web_mobile_input::show_keyboard();
+        {
+            use web::is_mobile;
+            if is_mobile() {
+                web_mobile_input::show_keyboard();
+            }
+        }
+    } else if !username_pressed && !password_pressed {
+        #[cfg(target_arch = "wasm32")]
+        {
+            use web::is_mobile;
+            if is_mobile() {
+                web_mobile_input::hide_keyboard();
+            }
+        }
     }
 
     for ev in evr.read() {
