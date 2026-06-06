@@ -6,3 +6,7 @@ edition = "2024"
 [dependencies]
 bevy = { workspace = true }
 serde = { workspace = true }
+
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys = { version = "0.3.99", features = ["Window", "Document"] }

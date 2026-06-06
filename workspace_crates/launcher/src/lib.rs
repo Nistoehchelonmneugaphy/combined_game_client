@@ -4,7 +4,7 @@ use auth_system_structs::public_api::{
     LoginErrorKind, LoginRequest, LoginResponse, PublicAPIAction::Login,
 };
 use bevy::prelude::*;
-use shared::{AppConfig, AppState};
+use shared::{AppConfig, AppState, set_title};
 
 use crate::structs::{
     ConnectButton, CouldNotContactAuthServer, CursorBlink, ErrorLabel, FormField, LauncherState,
@@ -35,12 +35,6 @@ impl Plugin for LauncherPlugin {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-fn update_browser_title(title: &str) {
-    let Some(window) = web_sys::window() else {return;};
-    let Some(document) = window.document() else { return;};
-    document.set_title(title);
-}
 
 fn setup_launcher_ui(
     mut commands: Commands,
@@ -48,15 +42,9 @@ fn setup_launcher_ui(
     mut windows: Query<&mut Window>,
 ) {
     let launcher_title = "Launcher";
-    #[cfg(target_arch = "wasm32")]
-    { 
-        info!("On wasm32: Calling update_browser_title");
-        update_browser_title(launcher_title);
-    }
 
     if let Ok(mut window) = windows.single_mut() {
-        info!("Set window title to launcher");
-        window.title = launcher_title.to_string();
+        set_title(&mut *window, launcher_title);
         window.resolution.set(480.0, 320.0);
     };
 

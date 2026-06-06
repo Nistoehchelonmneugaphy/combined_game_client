@@ -3177,7 +3177,6 @@ dependencies = [
  "ehttp",
  "serde_json",
  "shared",
- "web-sys",
 ]
 
 [[package]]
@@ -4527,6 +4526,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "serde",
+ "web-sys",
 ]
 
 [[package]]
