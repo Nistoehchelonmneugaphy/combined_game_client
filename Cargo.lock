@@ -3303,6 +3303,7 @@ dependencies = [
  "dotenvy",
  "launcher",
  "shared",
+ "startup",
 ]
 
 [[package]]
@@ -4524,6 +4525,7 @@ name = "shared"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "serde",
 ]
 
 [[package]]
@@ -4669,6 +4671,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "115beb9c69db2393ff10b75a1b8587a51716e5551d015001e55320ed279d32f9"
 dependencies = [
  "const_panic",
+]
+
+[[package]]
+name = "startup"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bevy",
+ "serde_json",
+ "shared",
 ]
 
 [[package]]

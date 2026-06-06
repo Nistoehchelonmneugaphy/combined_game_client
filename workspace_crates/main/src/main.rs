@@ -1,6 +1,7 @@
 use bevy::{prelude::*, window::WindowResolution};
 use launcher::LauncherPlugin;
 use shared::{AppConfig, AppState};
+use startup::StartupPlugin;
 
 #[bevy_main]
 fn main() {
@@ -10,7 +11,7 @@ fn main() {
     println!("Hello, world!");
     dotenvy::dotenv().ok();
     let app_config = AppConfig {
-        auth_server_url: "http://127.0.0.1:55555".to_string(),
+        auth_server_url: env!("AUTH_SERVER_URL").to_string(),
     };
     let mut app = App::new();
     app.insert_resource(app_config);
@@ -24,6 +25,6 @@ fn main() {
         ..default()
     }))
     .init_state::<AppState>()
-    .add_plugins((LauncherPlugin,));
+    .add_plugins((StartupPlugin, LauncherPlugin,));
     app.run();
 }

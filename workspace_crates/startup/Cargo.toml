@@ -1,0 +1,10 @@
+[package]
+name = "startup"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy = { workspace = true }
+shared = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }

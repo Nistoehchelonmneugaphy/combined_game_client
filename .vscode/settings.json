@@ -1,0 +1,5 @@
+{
+    "rust-analyzer.cargo.extraEnv": {
+        "AUTH_SERVER_URL": "http://localhost:55555"
+    }
+}
