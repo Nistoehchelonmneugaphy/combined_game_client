@@ -1,0 +1,17 @@
+#mobile-keyboard-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    /* hidden and non-interactive by default */
+    width: 1px;
+    height: 1px;
+    top: 0;
+    left: 0;
+}
+
+#mobile-keyboard-input.active {
+    /* covers the full canvas so tapping anywhere on it focuses */
+    width: 100%;
+    height: 100%;
+    pointer-events: all;
+}

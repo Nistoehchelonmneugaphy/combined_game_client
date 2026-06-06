@@ -16,10 +16,25 @@ use web_sys::{
 static EVENT_QUEUE: Mutex<Vec<KeyboardInput>> = Mutex::new(Vec::new());
 
 
+#[cfg(target_arch = "wasm32")]
 pub fn show_keyboard() {
-    if let Some(input) = get_input_element() {
-        let _ = input.focus();
-    }
+    let Some(input) = get_input_element() else { return };
+    let _ = input.class_list().add_1("active");
+    
+    let closure = Closure::wrap(Box::new(move || {
+        if let Some(el) = get_input_element() {
+            let _ = el.focus();
+        }
+    }) as Box<dyn FnMut()>);
+    
+    web_sys::window()
+        .unwrap()
+        .set_timeout_with_callback_and_timeout_and_arguments_0(
+            closure.as_ref().unchecked_ref(),
+            200, // 200ms should be enough for winit to finish
+        )
+        .unwrap();
+    closure.forget();
 }
 
 
