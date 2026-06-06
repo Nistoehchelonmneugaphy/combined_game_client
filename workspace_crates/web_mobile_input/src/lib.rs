@@ -20,7 +20,6 @@ pub fn hide_keyboard() {
     let Some(input) = get_input_element() else {
         return;
     };
-    let _ = input.class_list().remove_1("active");
     let _ = input.blur();
 }
 
@@ -31,10 +30,6 @@ pub fn show_keyboard() {
     if !is_mobile() {
         return;
     }
-    let Some(input) = get_input_element() else {
-        return;
-    };
-    let _ = input.class_list().add_1("active");
 
     let closure = Closure::wrap(Box::new(move || {
         if let Some(el) = get_input_element() {
@@ -156,17 +151,12 @@ fn setup_event_listeners() {
         }
     }) as Box<dyn FnMut(_)>);
 
-    let blur_handler = Closure::wrap(Box::new(move |_: web_sys::FocusEvent| {
-        hide_keyboard();
-    }) as Box<dyn FnMut(_)>);
 
     let _ = input
         .add_event_listener_with_callback("input", composition_handler.as_ref().unchecked_ref());
     let _ =
         input.add_event_listener_with_callback("keydown", keydown_handler.as_ref().unchecked_ref());
-    let _ = input.add_event_listener_with_callback("blur", blur_handler.as_ref().unchecked_ref());
 
-    blur_handler.forget();
     composition_handler.forget();
     keydown_handler.forget();
 }

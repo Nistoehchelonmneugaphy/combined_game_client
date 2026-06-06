@@ -173,15 +173,15 @@ fn teardown_launcher_ui(mut commands: Commands) {
 fn handle_text_input(
     mut form: ResMut<LoginForm>,
     mut evr: MessageReader<bevy::input::keyboard::KeyboardInput>,
-    username_query: Query<&Interaction, With<UsernameInput>>,
-    password_query: Query<&Interaction, With<PasswordInput>>,
+    username_field_interaction_query: Query<&Interaction, With<UsernameInput>>,
+    password_field_interaction_query: Query<&Interaction, With<PasswordInput>>,
     mut username_text: Query<&mut Text, (With<UsernameText>, Without<PasswordText>)>,
     mut password_text: Query<&mut Text, (With<PasswordText>, Without<UsernameText>)>,
 ) {
-    let username_pressed = username_query
+    let username_pressed = username_field_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
-    let password_pressed = password_query
+    let password_pressed = password_field_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
 
@@ -201,14 +201,6 @@ fn handle_text_input(
             use web::is_mobile;
             if is_mobile() {
                 web_mobile_input::show_keyboard();
-            }
-        }
-    } else if !username_pressed && !password_pressed {
-        #[cfg(target_arch = "wasm32")]
-        {
-            use web::is_mobile;
-            if is_mobile() {
-                web_mobile_input::hide_keyboard();
             }
         }
     }
