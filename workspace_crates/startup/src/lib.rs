@@ -25,11 +25,11 @@ fn check_loaded(
     mut next_state: ResMut<NextState<AppState>>,
 ) {
     if let Some(config) = assets.get(&handle.0) {
-        println!("Retrieved auth_server_url from assets/config.json: {}", config.auth_server_url);
+        info!("Retrieved auth_server_url from assets/config.json: {}", config.auth_server_url);
         commands.insert_resource(AppConfig {
             auth_server_url: config.auth_server_url.clone(),
         });
-        println!("Switching from AppState::Startup to AppState::Launcher");
+        info!("Switching from AppState::Startup to AppState::Launcher");
         next_state.set(AppState::Launcher);
     }
 }

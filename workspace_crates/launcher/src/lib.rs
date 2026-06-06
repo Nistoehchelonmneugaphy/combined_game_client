@@ -322,21 +322,21 @@ fn login_request(
 
     ehttp::fetch(request, move |result: ehttp::Result<ehttp::Response>| {
         let Ok(mut queue) = queue_clone.0.lock() else {
-            println!("Could not get queue lock");
+            error!("Could not get queue lock");
             return;
         };
         match result {
             Ok(r) => {
                 let Ok(resp) = serde_json::from_slice::<LoginResponse>(&r.bytes) else {
-                    println!("Could not shape response into LoginResponse.");
+                    error!("Could not shape response into LoginResponse.");
                     queue.push(Err(CouldNotContactAuthServer));
                     return;
                 };
-                println!("login resp: {resp:#?}");
+                info!("login resp: {resp:#?}");
                 queue.push(Ok(resp));
             }
             Err(_) => {
-                println!("req err");
+                error!("req err");
                 queue.push(Err(CouldNotContactAuthServer));
             }
         }
@@ -371,7 +371,7 @@ fn poll_login_response(
                 }
                 LoginResponse::Error(err) => {
                     let err_kind = err.kind;
-                    println!("Login failed: {err_kind:?}");
+                    warn!("Login failed: {err_kind:?}");
                     let msg = match err_kind {
                         LoginErrorKind::InvalidCredentials => "Invalid username or password.",
                         LoginErrorKind::SubscriptionExpired => "Subscription expired.",
@@ -396,7 +396,7 @@ fn handle_server_connect(
         let Some(session) = &session else {
             continue;
         };
-        println!("{} {}", session.token, session.user_id);
+        info!("{} {}", session.token, session.user_id);
         // When I will combine the launcher into a single app together with the server client and match client, I will add here a state switch to server and set the session resource or something.
     }
 }
