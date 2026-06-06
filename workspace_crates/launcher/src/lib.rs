@@ -271,6 +271,8 @@ fn blink_cursor(
 }
 
 fn handle_login_button(
+    asset_server: Res<AssetServer>,
+    mut commands: Commands,
     mut queue: ResMut<LoginResultQueue>,
     interaction_q: Query<&Interaction, (Changed<Interaction>, With<LoginButton>)>,
     form: Res<LoginForm>,
@@ -289,6 +291,11 @@ fn handle_login_button(
         let (username, password) = (form.username.clone(), form.password.clone());
 
         login_request(&mut queue, &config.auth_server_url, &username, &password);
+        commands.spawn((
+            DespawnOnExit(AppState::Launcher),
+            AudioPlayer::new(asset_server.load("audio/launcher/button_press/login.mp3")),
+            PlaybackSettings::DESPAWN,
+        ));
     }
 }
 
