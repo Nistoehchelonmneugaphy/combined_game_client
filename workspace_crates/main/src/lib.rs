@@ -23,6 +23,7 @@ pub fn run() {
             .to_string(),
         ..default()
     };
+    // This fixed meta errors on wasm and allows audio and other assets to load. Yay
     let asset_server_plugin_config = AssetPlugin {
         meta_check: bevy::asset::AssetMetaCheck::Never,
         ..default()
