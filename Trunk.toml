@@ -1,0 +1,3 @@
+[build]
+target = "workspace_crates/main/index.html"
+manifest = "workspace_crates/main/Cargo.toml"
