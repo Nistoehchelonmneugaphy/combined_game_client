@@ -50,3 +50,6 @@ fn set_browser_title(title: &str) {
     };
     document.set_title(title);
 }
+
+#[cfg(any(target_os = "android", target_os = "ios"))]
+fn set_title_impl(_window: &mut Window, _title: &str) {}
