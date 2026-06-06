@@ -5,7 +5,7 @@ use shared::AppState;
 use startup::StartupPlugin;
 
 #[cfg(target_arch = "wasm32")]
-mod web_mobile_input;
+use web_mobile_input;
 
 pub fn run() {
     #[cfg(target_arch = "wasm32")]

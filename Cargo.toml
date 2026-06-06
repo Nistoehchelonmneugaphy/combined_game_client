@@ -13,6 +13,7 @@ ehttp = "0.7.1"
 serde = { version = "1.0.228", features = ["derive"]}
 serde_json = "1.0.150"
 launcher = { path = "workspace_crates/launcher" }
+web_mobile_input = { path = "workspace_crates/web_mobile_input" }
 startup = { path = "workspace_crates/startup" }
 shared = { path = "workspace_crates/shared" }
 auth_system_structs = { git = "ssh://git@github.com/Aeroel/auth_system.git" }

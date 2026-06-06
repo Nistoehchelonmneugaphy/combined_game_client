@@ -1,3 +1,5 @@
+// Base was from https://github.com/mirsella/bevy_mobile_input
+
 use bevy::{
     input::{
         ButtonState,
@@ -13,6 +15,14 @@ use web_sys::{
 
 static EVENT_QUEUE: Mutex<Vec<KeyboardInput>> = Mutex::new(Vec::new());
 
+
+pub fn show_keyboard() {
+    if let Some(input) = get_input_element() {
+        let _ = input.focus();
+    }
+}
+
+
 pub struct MobileInputPlugin;
 
 impl Plugin for MobileInputPlugin {
@@ -21,6 +31,7 @@ impl Plugin for MobileInputPlugin {
         app.add_systems(First, poll_events);
     }
 }
+
 
 fn get_input_element() -> Option<HtmlInputElement> {
     use web_sys::wasm_bindgen::JsCast;
@@ -113,7 +124,8 @@ fn setup_event_listeners() {
         }
     }) as Box<dyn FnMut(_)>);
 
-    let _ = input.add_event_listener_with_callback("input", composition_handler.as_ref().unchecked_ref());
+    let _ = input
+        .add_event_listener_with_callback("input", composition_handler.as_ref().unchecked_ref());
     let _ =
         input.add_event_listener_with_callback("keydown", keydown_handler.as_ref().unchecked_ref());
 

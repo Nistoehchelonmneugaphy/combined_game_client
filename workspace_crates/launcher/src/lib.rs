@@ -35,7 +35,6 @@ impl Plugin for LauncherPlugin {
     }
 }
 
-
 fn setup_launcher_ui(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -47,8 +46,6 @@ fn setup_launcher_ui(
         set_title(&mut *window, launcher_title);
         window.resolution.set(480.0, 320.0);
     };
-
-
 
     commands.spawn((
         DespawnOnExit(AppState::Launcher),
@@ -186,12 +183,16 @@ fn handle_text_input(
         .is_ok_and(|i| *i == Interaction::Pressed)
     {
         form.focused = FormField::Username;
+        #[cfg(target_arch = "wasm32")]
+        web_mobile_input::show_keyboard();
     }
     if password_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed)
     {
         form.focused = FormField::Password;
+        #[cfg(target_arch = "wasm32")]
+        web_mobile_input::show_keyboard();
     }
 
     for ev in evr.read() {

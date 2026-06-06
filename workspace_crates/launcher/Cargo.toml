@@ -9,4 +9,5 @@ serde_json = { workspace = true }
 ehttp = { workspace = true }
 shared = { workspace = true }
 auth_system_structs = { workspace = true }
+web_mobile_input = { workspace = true }
 

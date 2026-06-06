@@ -3177,6 +3177,7 @@ dependencies = [
  "ehttp",
  "serde_json",
  "shared",
+ "web_mobile_input",
 ]
 
 [[package]]
@@ -3304,7 +3305,7 @@ dependencies = [
  "launcher",
  "shared",
  "startup",
- "web-sys",
+ "web_mobile_input",
 ]
 
 [[package]]
@@ -5469,6 +5470,14 @@ checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "web_mobile_input"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "web-sys",
 ]
 
 [[package]]
