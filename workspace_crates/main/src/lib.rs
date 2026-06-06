@@ -23,10 +23,15 @@ pub fn run() {
             .to_string(),
         ..default()
     };
+    let asset_server_plugin_config = AssetPlugin {
+        meta_check: bevy::asset::AssetMetaCheck::Never,
+        ..default()
+    };
     app.add_plugins(
         DefaultPlugins
             .set(window_plugin_config)
-            .set(log_plugin_config),
+            .set(log_plugin_config)
+            .set(asset_server_plugin_config),
     )
     .init_state::<AppState>()
     .add_plugins((StartupPlugin, LauncherPlugin));
