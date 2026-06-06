@@ -23,23 +23,30 @@ pub struct AppConfigAsset {
 #[derive(Resource)]
 pub struct AppConfigHandle(pub Handle<AppConfigAsset>);
 
-
 /// Set title. On wasm32 it sets browser tab title, on PC it sets window title. On Android/IOS it does nothing, I don't think either have any window title in any form, right?
 pub fn set_title(window: &mut Window, title: &str) {
-#[cfg(not(any(target_arch = "wasm32", target_os = "android", target_os = "ios")))]
-    {
-        info!("Setting window title to {title}");
-        window.title = title.to_string();
-    }
+    set_title_impl(window, title);
+}
 
-    #[cfg(target_arch = "wasm32")]
+#[cfg(not(any(target_arch = "wasm32", target_os = "android", target_os = "ios")))]
+pub fn set_title_impl(window: &mut Window, title: &str) {
+    info!("Setting window title to {title}");
+    window.title = title.to_string();
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn set_title_impl(_window: &mut Window, title: &str) {
     set_browser_title(title);
 }
 
 #[cfg(target_arch = "wasm32")]
 fn set_browser_title(title: &str) {
     info!("Setting browser title to {title}");
-    let Some(window) = web_sys::window() else {return;};
-    let Some(document) = window.document() else { return;};
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+    let Some(document) = window.document() else {
+        return;
+    };
     document.set_title(title);
 }
