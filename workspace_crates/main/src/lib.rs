@@ -4,7 +4,7 @@ use launcher::LauncherPlugin;
 use shared::AppState;
 use startup::StartupPlugin;
 
-//#[cfg(target_arch = "wasm32")]
+#[cfg(target_arch = "wasm32")]
 mod web_mobile_input;
 
 pub fn run() {
@@ -12,11 +12,12 @@ pub fn run() {
     console_error_panic_hook::set_once();
     let mut app = App::new();
     
-    //#[cfg(target_arch = "wasm32")]
+    #[cfg(target_arch = "wasm32")]
     app.add_plugins(web_mobile_input::MobileInputPlugin);
     // create default window will be changed later
     let window_plugin_config = WindowPlugin {
         primary_window: Some(Window {
+            prevent_default_event_handling: false, 
             title: "Placeholder title".into(),
             resolution: WindowResolution::new(800, 600),
             ..default()

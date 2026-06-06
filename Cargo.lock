@@ -3304,6 +3304,7 @@ dependencies = [
  "launcher",
  "shared",
  "startup",
+ "web-sys",
 ]
 
 [[package]]
