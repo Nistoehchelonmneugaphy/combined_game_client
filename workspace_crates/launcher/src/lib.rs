@@ -336,7 +336,7 @@ fn login_request(
                 queue.push(Ok(resp));
             }
             Err(_) => {
-                error!("req err");
+                warn!("req err");
                 queue.push(Err(CouldNotContactAuthServer));
             }
         }
