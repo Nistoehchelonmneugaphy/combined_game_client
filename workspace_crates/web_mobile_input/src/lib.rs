@@ -26,6 +26,11 @@ pub fn hide_keyboard() {
 
 #[cfg(target_arch = "wasm32")]
 pub fn show_keyboard() {
+    use web::is_mobile;
+
+    if !is_mobile() {
+        return;
+    }
     let Some(input) = get_input_element() else {
         return;
     };
