@@ -47,7 +47,7 @@ fn setup_launcher_ui(
 
     commands.spawn((
         DespawnOnExit(AppState::Launcher),
-        AudioPlayer::new(asset_server.load("audio/bemcupa_petos.mp3")),
+        AudioPlayer::new(asset_server.load("audio/launcher/ambience/launcher_2.mp3")),
         PlaybackSettings::LOOP,
     ));
     commands.spawn((DespawnOnExit(AppState::Launcher), Camera2d));
