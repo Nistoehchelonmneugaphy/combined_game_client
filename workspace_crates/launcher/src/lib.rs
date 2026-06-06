@@ -178,17 +178,19 @@ fn handle_text_input(
     mut username_text: Query<&mut Text, (With<UsernameText>, Without<PasswordText>)>,
     mut password_text: Query<&mut Text, (With<PasswordText>, Without<UsernameText>)>,
 ) {
-    if username_query
+    let username_pressed = username_query
         .single()
-        .is_ok_and(|i| *i == Interaction::Pressed)
+        .is_ok_and(|i| *i == Interaction::Pressed);
+    let password_pressed = password_query
+        .single()
+        .is_ok_and(|i| *i == Interaction::Pressed);
+
+    if username_pressed
     {
         form.focused = FormField::Username;
         #[cfg(target_arch = "wasm32")]
         web_mobile_input::show_keyboard();
-    }
-    if password_query
-        .single()
-        .is_ok_and(|i| *i == Interaction::Pressed)
+    } else if password_pressed
     {
         form.focused = FormField::Password;
         #[cfg(target_arch = "wasm32")]

@@ -15,18 +15,28 @@ use web_sys::{
 
 static EVENT_QUEUE: Mutex<Vec<KeyboardInput>> = Mutex::new(Vec::new());
 
+#[cfg(target_arch = "wasm32")]
+pub fn hide_keyboard() {
+    let Some(input) = get_input_element() else {
+        return;
+    };
+    let _ = input.class_list().remove_1("active");
+    let _ = input.blur();
+}
 
 #[cfg(target_arch = "wasm32")]
 pub fn show_keyboard() {
-    let Some(input) = get_input_element() else { return };
+    let Some(input) = get_input_element() else {
+        return;
+    };
     let _ = input.class_list().add_1("active");
-    
+
     let closure = Closure::wrap(Box::new(move || {
         if let Some(el) = get_input_element() {
             let _ = el.focus();
         }
     }) as Box<dyn FnMut()>);
-    
+
     web_sys::window()
         .unwrap()
         .set_timeout_with_callback_and_timeout_and_arguments_0(
@@ -37,7 +47,6 @@ pub fn show_keyboard() {
     closure.forget();
 }
 
-
 pub struct MobileInputPlugin;
 
 impl Plugin for MobileInputPlugin {
@@ -47,7 +56,7 @@ impl Plugin for MobileInputPlugin {
     }
 }
 
-
+#[cfg(target_arch = "wasm32")]
 fn get_input_element() -> Option<HtmlInputElement> {
     use web_sys::wasm_bindgen::JsCast;
     web_sys::window()?
@@ -57,6 +66,7 @@ fn get_input_element() -> Option<HtmlInputElement> {
         .ok()
 }
 
+#[cfg(target_arch = "wasm32")]
 fn setup_event_listeners() {
     let Some(input) = get_input_element() else {
         warn!("mobile-keyboard-input element not found");
@@ -108,6 +118,7 @@ fn setup_event_listeners() {
             el.set_value("");
         }
         let key = e.key();
+
         let (key_code, logical_key) = match key.as_str() {
             "Enter" => (KeyCode::Enter, Key::Enter),
             "Backspace" => (KeyCode::Backspace, Key::Backspace),
@@ -136,18 +147,26 @@ fn setup_event_listeners() {
             if let Some(el) = get_input_element() {
                 el.set_value("");
             }
+            hide_keyboard();
         }
+    }) as Box<dyn FnMut(_)>);
+
+    let blur_handler = Closure::wrap(Box::new(move |_: web_sys::FocusEvent| {
+        hide_keyboard();
     }) as Box<dyn FnMut(_)>);
 
     let _ = input
         .add_event_listener_with_callback("input", composition_handler.as_ref().unchecked_ref());
     let _ =
         input.add_event_listener_with_callback("keydown", keydown_handler.as_ref().unchecked_ref());
+    let _ = input.add_event_listener_with_callback("blur", blur_handler.as_ref().unchecked_ref());
 
+    blur_handler.forget();
     composition_handler.forget();
     keydown_handler.forget();
 }
 
+#[cfg(target_arch = "wasm32")]
 fn poll_events(mut keyboard_events: MessageWriter<KeyboardInput>) {
     let Ok(mut queue) = EVENT_QUEUE.lock() else {
         return;
