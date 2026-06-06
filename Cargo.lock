@@ -3177,6 +3177,7 @@ dependencies = [
  "ehttp",
  "serde_json",
  "shared",
+ "web-sys",
 ]
 
 [[package]]

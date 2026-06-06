@@ -35,15 +35,32 @@ impl Plugin for LauncherPlugin {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
+fn update_browser_title(title: &str) {
+    let Some(window) = web_sys::window() else {return;};
+    let Some(document) = window.document() else { return;};
+    document.set_title(title);
+}
+
 fn setup_launcher_ui(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut windows: Query<&mut Window>,
 ) {
+    let launcher_title = "Launcher";
+    #[cfg(target_arch = "wasm32")]
+    { 
+        info!("On wasm32: Calling update_browser_title");
+        update_browser_title(launcher_title);
+    }
+
     if let Ok(mut window) = windows.single_mut() {
-        window.title = "Launcher".to_string();
+        info!("Set window title to launcher");
+        window.title = launcher_title.to_string();
         window.resolution.set(480.0, 320.0);
     };
+
+
 
     commands.spawn((
         DespawnOnExit(AppState::Launcher),
