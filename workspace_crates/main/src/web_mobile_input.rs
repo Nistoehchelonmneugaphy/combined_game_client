@@ -37,14 +37,12 @@ fn setup_event_listeners() {
         return;
     };
 
-    let input_handler = Closure::wrap(Box::new(move |e: web_sys::InputEvent| {
-        // Skip composition events (mobile IME)
-        if e.is_composing() {
-            return;
-        }
+    let composition_handler = Closure::wrap(Box::new(move |e: web_sys::CompositionEvent| {
         let Some(data) = e.data() else { return };
 
-        // Clear the input element after each character to prevent accumulation
+        web_sys::console::log_1(&format!("compositionend: data={:?}", data).into());
+
+        // Clear the input element
         if let Some(el) = get_input_element() {
             el.set_value("");
         }
@@ -61,16 +59,19 @@ fn setup_event_listeners() {
                     text: Some(ch.to_string().into()),
                     window: Entity::PLACEHOLDER,
                 };
-
                 let mut release = event.clone();
                 release.state = ButtonState::Released;
                 release.text = None;
-
                 queue.push(event);
                 queue.push(release);
             }
         }
     }) as Box<dyn FnMut(_)>);
+
+    let _ = input.add_event_listener_with_callback(
+        "compositionend",
+        composition_handler.as_ref().unchecked_ref(),
+    );
 
     let keydown_handler = Closure::wrap(Box::new(move |e: web_sys::KeyboardEvent| {
         if e.is_composing() {
@@ -112,11 +113,11 @@ fn setup_event_listeners() {
         }
     }) as Box<dyn FnMut(_)>);
 
-    let _ = input.add_event_listener_with_callback("input", input_handler.as_ref().unchecked_ref());
+    let _ = input.add_event_listener_with_callback("input", composition_handler.as_ref().unchecked_ref());
     let _ =
         input.add_event_listener_with_callback("keydown", keydown_handler.as_ref().unchecked_ref());
 
-    input_handler.forget();
+    composition_handler.forget();
     keydown_handler.forget();
 }
 
