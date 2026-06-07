@@ -17,7 +17,7 @@ static EVENT_QUEUE: Mutex<Vec<KeyboardInput>> = Mutex::new(Vec::new());
 
 const MOBILE_INPUT_ELEMENT_ID: &str = "mobile-keyboard-input";
 
-pub fn is_keyboard_already_visible() -> bool {
+pub fn is_keyboard_shown() -> bool {
     let document = web_sys::window().unwrap().document().unwrap();
     let active = document.active_element();
     let input = document.get_element_by_id(MOBILE_INPUT_ELEMENT_ID);

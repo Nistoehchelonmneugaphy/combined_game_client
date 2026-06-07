@@ -19,6 +19,7 @@ function setupCanvasPointerBlock() {
             input?.focus();
         }
     }, { capture: true });
+
 }
 
 // Run as soon as DOM is ready

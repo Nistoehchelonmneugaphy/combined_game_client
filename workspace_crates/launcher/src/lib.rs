@@ -5,6 +5,7 @@ use auth_system_structs::public_api::{
 };
 use bevy::prelude::*;
 use shared::{AppConfig, AppState, set_title};
+use web_mobile_input::hide_keyboard;
 
 use crate::structs::{
     ConnectButton, CouldNotContactAuthServer, CursorBlink, ErrorLabel, FormField, LauncherState,
@@ -178,7 +179,6 @@ fn handle_text_input(
     mut username_text: Query<&mut Text, (With<UsernameText>, Without<PasswordText>)>,
     mut password_text: Query<&mut Text, (With<PasswordText>, Without<UsernameText>)>,
 ) {
-    
     let username_pressed = username_field_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
@@ -194,9 +194,9 @@ fn handle_text_input(
     #[cfg(target_arch = "wasm32")]
     {
         use web::is_mobile;
-        use web_mobile_input::is_keyboard_already_visible;
+        use web_mobile_input::is_keyboard_shown;
 
-        if is_mobile() && !is_keyboard_already_visible() && (username_pressed || password_pressed) {
+        if is_mobile() && !is_keyboard_shown() && (username_pressed || password_pressed) {
             web_mobile_input::show_keyboard();
         }
     }
@@ -294,6 +294,15 @@ fn handle_login_button(
         let config = config.clone();
         if *interaction != Interaction::Pressed {
             continue;
+        }
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            use web::is_mobile;
+            use web_mobile_input::is_keyboard_shown;
+            if is_mobile() && is_keyboard_shown() {
+                hide_keyboard();
+            }
         }
 
         if let Ok(mut text) = error_q.single_mut() {
