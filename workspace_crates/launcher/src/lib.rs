@@ -192,8 +192,11 @@ fn handle_text_input(
     }
     #[cfg(target_arch = "wasm32")]
     {
-        if username_pressed || password_pressed {
-            web_mobile_input::show_keyboard_on_mobile();
+        use web::is_mobile;
+        use web_mobile_input::is_keyboard_already_visible;
+
+        if is_mobile() && !is_keyboard_already_visible() && (username_pressed || password_pressed) {
+            web_mobile_input::show_keyboard();
         }
     }
     for ev in evr.read() {
