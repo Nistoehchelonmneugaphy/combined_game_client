@@ -191,8 +191,11 @@ fn handle_text_input(
         form.focused = FormField::Password;
     }
     #[cfg(target_arch = "wasm32")]
-    web_mobile_input::show_keyboard_on_mobile();
-
+    {
+        if username_pressed || password_pressed {
+            web_mobile_input::show_keyboard_on_mobile();
+        }
+    }
     for ev in evr.read() {
         if ev.state != bevy::input::ButtonState::Pressed {
             continue;

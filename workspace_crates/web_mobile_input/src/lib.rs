@@ -21,16 +21,19 @@ pub fn is_keyboard_currently_visible_already() -> bool {
     let document = web_sys::window().unwrap().document().unwrap();
     let active = document.active_element();
     let input = document.get_element_by_id(MOBILE_INPUT_ELEMENT_ID);
-    match (active, input) {
+    let result = match (active, input) {
         (Some(active), Some(input)) => active == input,
         _ => false,
-    }
+    };
+    debug!("is_keyboard_currently_visible_already: {result}");
+    result
 }
 
 pub fn hide_keyboard() {
     let Some(input) = get_input_element() else {
         return;
     };
+    debug!("hide_keyboard called");
     let _ = input.blur();
 }
 
