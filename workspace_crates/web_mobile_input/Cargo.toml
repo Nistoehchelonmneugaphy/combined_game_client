@@ -12,6 +12,7 @@ web-sys = { version = "0.3.99", features = [
     "Window",
     "Document",
     "HtmlInputElement",
+    "FocusOptions",
     "HtmlElement",
     "Element",
     "InputEvent",

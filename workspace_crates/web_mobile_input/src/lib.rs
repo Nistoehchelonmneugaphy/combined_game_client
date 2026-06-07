@@ -11,7 +11,7 @@ use bevy::{
 
 use std::sync::Mutex;
 
-use web_sys::{HtmlInputElement, wasm_bindgen::JsCast};
+use web_sys::{FocusOptions, HtmlInputElement, wasm_bindgen::JsCast};
 
 static EVENT_QUEUE: Mutex<Vec<KeyboardInput>> = Mutex::new(Vec::new());
 
@@ -46,7 +46,9 @@ pub fn show_keyboard_on_mobile() {
 
     let closure = ScopedClosure::wrap(Box::new(move || {
         if let Some(element) = get_input_element() {
-            let _ = element.focus();
+            let options = FocusOptions::new();
+            options.set_prevent_scroll(true);
+            let _ = element.focus_with_options(&options);
         }
     }) as Box<dyn FnMut()>);
 
