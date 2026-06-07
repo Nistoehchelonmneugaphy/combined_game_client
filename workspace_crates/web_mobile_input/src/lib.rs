@@ -1,3 +1,4 @@
+#![cfg(target_arch = "wasm32")]
 // Base was from https://github.com/mirsella/bevy_mobile_input
 
 use bevy::{
@@ -7,13 +8,15 @@ use bevy::{
     },
     prelude::*,
 };
+
 use std::sync::Mutex;
+
 use web_sys::{HtmlInputElement, wasm_bindgen::JsCast};
 
 static EVENT_QUEUE: Mutex<Vec<KeyboardInput>> = Mutex::new(Vec::new());
+
 const MOBILE_INPUT_ELEMENT_ID: &str = "mobile-keyboard-input";
 
-#[cfg(target_arch = "wasm32")]
 pub fn is_keyboard_input_focused() -> bool {
     let document = web_sys::window().unwrap().document().unwrap();
     let active = document.active_element();
@@ -24,7 +27,6 @@ pub fn is_keyboard_input_focused() -> bool {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
 pub fn hide_keyboard() {
     let Some(input) = get_input_element() else {
         return;
@@ -32,7 +34,6 @@ pub fn hide_keyboard() {
     let _ = input.blur();
 }
 
-#[cfg(target_arch = "wasm32")]
 pub fn show_keyboard() {
     use web_sys::wasm_bindgen::prelude::ScopedClosure;
 
@@ -65,7 +66,6 @@ impl Plugin for MobileInputPlugin {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
 fn get_input_element() -> Option<HtmlInputElement> {
     use web_sys::wasm_bindgen::JsCast;
     web_sys::window()?
@@ -75,7 +75,6 @@ fn get_input_element() -> Option<HtmlInputElement> {
         .ok()
 }
 
-#[cfg(target_arch = "wasm32")]
 fn setup_event_listeners() {
     use web_sys::wasm_bindgen::prelude::ScopedClosure;
 
@@ -172,7 +171,6 @@ fn setup_event_listeners() {
     keydown_handler.forget();
 }
 
-#[cfg(target_arch = "wasm32")]
 fn poll_events(mut keyboard_events: MessageWriter<KeyboardInput>) {
     let Ok(mut queue) = EVENT_QUEUE.lock() else {
         return;
