@@ -8,12 +8,21 @@ use bevy::{
     prelude::*,
 };
 use std::sync::Mutex;
-use web_sys::{
-    HtmlInputElement,
-    wasm_bindgen::{JsCast, prelude::Closure},
-};
+use web_sys::{HtmlInputElement, wasm_bindgen::JsCast};
 
 static EVENT_QUEUE: Mutex<Vec<KeyboardInput>> = Mutex::new(Vec::new());
+const MOBILE_INPUT_ELEMENT_ID: &str = "mobile-keyboard-input";
+
+#[cfg(target_arch = "wasm32")]
+pub fn is_keyboard_input_focused() -> bool {
+    let document = web_sys::window().unwrap().document().unwrap();
+    let active = document.active_element();
+    let input = document.get_element_by_id(MOBILE_INPUT_ELEMENT_ID);
+    match (active, input) {
+        (Some(active), Some(input)) => active == input,
+        _ => false,
+    }
+}
 
 #[cfg(target_arch = "wasm32")]
 pub fn hide_keyboard() {
@@ -25,15 +34,15 @@ pub fn hide_keyboard() {
 
 #[cfg(target_arch = "wasm32")]
 pub fn show_keyboard() {
-    use web::is_mobile;
+    use web_sys::wasm_bindgen::prelude::ScopedClosure;
 
-    if !is_mobile() {
+    if !is_keyboard_input_focused() {
         return;
     }
 
-    let closure = Closure::wrap(Box::new(move || {
-        if let Some(el) = get_input_element() {
-            let _ = el.focus();
+    let closure = ScopedClosure::wrap(Box::new(move || {
+        if let Some(element) = get_input_element() {
+            let _ = element.focus();
         }
     }) as Box<dyn FnMut()>);
 
@@ -61,19 +70,21 @@ fn get_input_element() -> Option<HtmlInputElement> {
     use web_sys::wasm_bindgen::JsCast;
     web_sys::window()?
         .document()?
-        .get_element_by_id("mobile-keyboard-input")?
+        .get_element_by_id(MOBILE_INPUT_ELEMENT_ID)?
         .dyn_into::<HtmlInputElement>()
         .ok()
 }
 
 #[cfg(target_arch = "wasm32")]
 fn setup_event_listeners() {
+    use web_sys::wasm_bindgen::prelude::ScopedClosure;
+
     let Some(input) = get_input_element() else {
         warn!("mobile-keyboard-input element not found");
         return;
     };
 
-    let composition_handler = Closure::wrap(Box::new(move |e: web_sys::CompositionEvent| {
+    let composition_handler = ScopedClosure::wrap(Box::new(move |e: web_sys::CompositionEvent| {
         let Some(data) = e.data() else { return };
 
         web_sys::console::log_1(&format!("compositionend: data={:?}", data).into());
@@ -109,15 +120,16 @@ fn setup_event_listeners() {
         composition_handler.as_ref().unchecked_ref(),
     );
 
-    let keydown_handler = Closure::wrap(Box::new(move |e: web_sys::KeyboardEvent| {
-        if e.is_composing() {
+    let keydown_handler = ScopedClosure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
+        if event.is_composing() {
             return;
         }
         // Clear the input element after each character to prevent accumulation
+
         if let Some(el) = get_input_element() {
             el.set_value("");
         }
-        let key = e.key();
+        let key = event.key();
 
         let (key_code, logical_key) = match key.as_str() {
             "Enter" => (KeyCode::Enter, Key::Enter),
@@ -150,7 +162,6 @@ fn setup_event_listeners() {
             hide_keyboard();
         }
     }) as Box<dyn FnMut(_)>);
-
 
     let _ = input
         .add_event_listener_with_callback("input", composition_handler.as_ref().unchecked_ref());
