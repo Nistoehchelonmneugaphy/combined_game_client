@@ -18,16 +18,21 @@ pub fn run() {
     // create default window will be changed later
     let window_plugin_config = WindowPlugin {
         primary_window: Some(Window {
-            prevent_default_event_handling: false,
             title: "Placeholder title".into(),
-            resolution: WindowResolution::new(800, 600),
+            resolution: WindowResolution::new(800, 600),    
+
+            // #[cfg(target_arch = "wasm32")]
+            // prevent_default_event_handling: true,
+            #[cfg(target_arch = "wasm32")]
+            canvas: Some("#bevy_canvas".to_string()),
+
             ..default()
         }),
         ..default()
     };
     let log_plugin_config = LogPlugin {
         level: bevy::log::Level::WARN,
-        filter: "wgpu=error,bevy=info,main=debug,launcher=debug,shared=debug,startup=debug"
+        filter: "wgpu=error,bevy=info,main=debug,launcher=debug,shared=debug,startup=debug,web_mobile_input=debug,web=debug"
             .to_string(),
         ..default()
     };

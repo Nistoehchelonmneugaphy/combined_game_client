@@ -178,6 +178,7 @@ fn handle_text_input(
     mut username_text: Query<&mut Text, (With<UsernameText>, Without<PasswordText>)>,
     mut password_text: Query<&mut Text, (With<PasswordText>, Without<UsernameText>)>,
 ) {
+    
     let username_pressed = username_field_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);

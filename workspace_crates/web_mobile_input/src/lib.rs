@@ -11,7 +11,7 @@ use bevy::{
 
 use std::sync::Mutex;
 
-use web_sys::{FocusOptions, HtmlInputElement, wasm_bindgen::JsCast};
+use web_sys::{FocusOptions, HtmlInputElement, js_sys, wasm_bindgen::JsCast};
 
 static EVENT_QUEUE: Mutex<Vec<KeyboardInput>> = Mutex::new(Vec::new());
 
@@ -34,6 +34,7 @@ pub fn hide_keyboard() {
         return;
     };
     debug!("hide_keyboard called");
+    js_sys::eval("window.setKeyboardOpen(false)").unwrap();
     let _ = input.blur();
 }
 
@@ -56,6 +57,7 @@ pub fn show_keyboard() {
         )
         .unwrap();
     closure.forget();
+    js_sys::eval("window.setKeyboardOpen(true)").unwrap();
 }
 
 pub struct MobileInputPlugin;
@@ -156,6 +158,7 @@ fn setup_event_listeners() {
         }
 
         if key == "Enter" {
+            debug!("Fired enter");
             if let Some(el) = get_input_element() {
                 el.set_value("");
             }
