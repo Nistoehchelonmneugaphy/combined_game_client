@@ -3,7 +3,7 @@ assets/*
 
 # Do not ignore the README.md file inside the assets folder
 !assets/README.md
-!assets/config.json
+!assets/config.json.example
 
 .env
 
