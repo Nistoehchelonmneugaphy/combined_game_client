@@ -17,7 +17,7 @@ static EVENT_QUEUE: Mutex<Vec<KeyboardInput>> = Mutex::new(Vec::new());
 
 const MOBILE_INPUT_ELEMENT_ID: &str = "mobile-keyboard-input";
 
-pub fn is_keyboard_input_focused() -> bool {
+pub fn is_keyboard_currently_visible_already() -> bool {
     let document = web_sys::window().unwrap().document().unwrap();
     let active = document.active_element();
     let input = document.get_element_by_id(MOBILE_INPUT_ELEMENT_ID);
@@ -34,10 +34,10 @@ pub fn hide_keyboard() {
     let _ = input.blur();
 }
 
-pub fn show_keyboard() {
+pub fn show_keyboard_on_mobile() {
     use web_sys::wasm_bindgen::prelude::ScopedClosure;
-
-    if !is_keyboard_input_focused() {
+    use web::is_mobile;
+    if !is_mobile() || is_keyboard_currently_visible_already() {
         return;
     }
 
