@@ -5,7 +5,6 @@ use auth_system_structs::public_api::{
 };
 use bevy::prelude::*;
 use shared::{AppConfig, AppState, set_title};
-use web_mobile_input::hide_keyboard;
 
 use crate::structs::{
     ConnectButton, CouldNotContactAuthServer, CursorBlink, ErrorLabel, FormField, LauncherState,
@@ -298,10 +297,8 @@ fn handle_login_button(
 
         #[cfg(target_arch = "wasm32")]
         {
-            use web::is_mobile;
-            use web_mobile_input::is_keyboard_shown;
-            if is_mobile() && is_keyboard_shown() {
-                hide_keyboard();
+            if web::is_mobile() && web_mobile_input::is_keyboard_shown() {
+                web_mobile_input::hide_keyboard();
             }
         }
 
