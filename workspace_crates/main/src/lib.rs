@@ -7,7 +7,9 @@ use startup::StartupPlugin;
 #[cfg(target_arch = "wasm32")]
 use web_mobile_input;
 
-pub fn run() {
+#[bevy_main]
+pub fn main() {
+    println!("hey there");
     #[cfg(target_arch = "wasm32")]
     web::console_error_panic_hook::set_once();
     let mut app = App::new();

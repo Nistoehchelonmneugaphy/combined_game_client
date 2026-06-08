@@ -2,6 +2,6 @@
     "rust-analyzer.cargo.extraEnv": {
         "AUTH_SERVER_URL": "http://localhost:55555"
     },
-    "rust-analyzer.cargo.target": "wasm32-unknown-unknown"
+    //"rust-analyzer.cargo.target": "wasm32-unknown-unknown"
 
 }
