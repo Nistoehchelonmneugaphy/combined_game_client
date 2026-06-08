@@ -9,7 +9,7 @@ use web_mobile_input;
 
 pub fn run() {
     #[cfg(target_arch = "wasm32")]
-    console_error_panic_hook::set_once();
+    web::console_error_panic_hook::set_once();
     let mut app = App::new();
 
     #[cfg(target_arch = "wasm32")]

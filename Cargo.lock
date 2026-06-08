@@ -3301,11 +3301,11 @@ name = "main"
 version = "0.1.0"
 dependencies = [
  "bevy",
- "console_error_panic_hook",
  "dotenvy",
  "launcher",
  "shared",
  "startup",
+ "web",
  "web_mobile_input",
 ]
 
@@ -5458,6 +5458,7 @@ name = "web"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "console_error_panic_hook",
  "web-sys",
 ]
 

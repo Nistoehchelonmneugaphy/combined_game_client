@@ -1,6 +1,6 @@
 #![cfg(target_arch = "wasm32")]
 use bevy::prelude::*;
-
+pub use console_error_panic_hook;
 pub fn is_mobile() -> bool {
     let Some(window) = web_sys::window() else {
         return false;
