@@ -1,7 +1,7 @@
-use bevy::log::LogPlugin;
 use bevy::window::WindowMode;
 #[cfg(target_os = "android")]
 use bevy::winit::WinitSettings;
+use bevy::{log::LogPlugin, window::AppLifecycle};
 use bevy::{prelude::*, window::WindowResolution};
 use launcher::LauncherPlugin;
 use shared::AppState;
@@ -58,7 +58,27 @@ pub fn main() {
     .add_plugins((StartupPlugin, LauncherPlugin));
 
     #[cfg(target_os = "android")]
-    app.insert_resource(WinitSettings::mobile());
-    
+    {
+        app.insert_resource(WinitSettings::mobile());
+        app.add_systems(
+            Update,
+            handle_lifetime.run_if(any_with_component::<AudioSink>),
+        );
+    }
     app.run();
+}
+
+// Pause audio when app goes into background and resume when it returns.
+// This is handled by the OS on iOS, but not on Android.
+fn handle_lifetime(
+    mut app_lifecycle_reader: MessageReader<AppLifecycle>,
+    music_controller: Single<&AudioSink>,
+) {
+    for app_lifecycle in app_lifecycle_reader.read() {
+        match app_lifecycle {
+            AppLifecycle::Idle | AppLifecycle::WillSuspend | AppLifecycle::WillResume => {}
+            AppLifecycle::Suspended => music_controller.pause(),
+            AppLifecycle::Running => music_controller.play(),
+        }
+    }
 }
