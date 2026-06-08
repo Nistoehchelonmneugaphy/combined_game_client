@@ -14,7 +14,7 @@ crate-type = ["lib", "cdylib"]
 
 [dependencies]
 dotenvy = { workspace = true }
-bevy = { workspace = true, features = ["android-game-activity"] }
+bevy = { workspace = true, features = ["android-game-activity", "android_shared_stdcxx"] }
 launcher = { workspace = true }
 startup = { workspace = true }
 shared = { workspace = true }

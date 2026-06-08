@@ -1,0 +1,1 @@
+/home/user1/cgc_android/workspace_crates/main/android_example/app/CMakeLists.txt

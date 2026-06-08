@@ -1,0 +1,3 @@
+/home/user1/cgc_android/workspace_crates/main/android_example/app/.cxx/Debug/4i48133m/arm64-v8a/CMakeFiles/dummy.dir
+/home/user1/cgc_android/workspace_crates/main/android_example/app/.cxx/Debug/4i48133m/arm64-v8a/CMakeFiles/edit_cache.dir
+/home/user1/cgc_android/workspace_crates/main/android_example/app/.cxx/Debug/4i48133m/arm64-v8a/CMakeFiles/rebuild_cache.dir
