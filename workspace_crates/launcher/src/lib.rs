@@ -40,6 +40,12 @@ fn setup_launcher_ui(
     asset_server: Res<AssetServer>,
     mut windows: Query<&mut Window>,
 ) {
+    let font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    let text_font = TextFont {
+        font,
+        font_size: 30.0,
+        ..default()
+    };
     let launcher_title = "Launcher";
 
     if let Ok(mut window) = windows.single_mut() {
@@ -75,6 +81,7 @@ fn setup_launcher_ui(
             spawn_text_field(
                 p,
                 "Username",
+                text_font.clone(),
                 UsernameInput,
                 UsernameText,
                 UsernameInputFieldCursor,
@@ -82,6 +89,7 @@ fn setup_launcher_ui(
             spawn_text_field(
                 p,
                 "Password",
+                text_font.clone(),
                 PasswordInput,
                 PasswordText,
                 PasswordInputFieldCursor,
@@ -100,10 +108,7 @@ fn setup_launcher_ui(
             ))
             .with_child((
                 Text::new("Login"),
-                TextFont {
-                    font_size: 30.0,
-                    ..default()
-                },
+                text_font.clone(),
             ));
 
             // Error label (hidden until needed)
@@ -111,10 +116,7 @@ fn setup_launcher_ui(
                 DespawnOnExit(AppState::Launcher),
                 ErrorLabel,
                 Text::new(""),
-                TextFont {
-                    font_size: 30.0,
-                    ..default()
-                },
+                text_font.clone(),
                 TextColor(Color::srgb(1.0, 0.3, 0.3)),
             ));
         });
@@ -123,6 +125,7 @@ fn setup_launcher_ui(
 fn spawn_text_field<M: Bundle, T: Bundle, C: Bundle>(
     parent: &mut ChildSpawnerCommands,
     label: &str,
+    text_font: TextFont,
     container_marker: M,
     text_marker: T,
     cursor_marker: C,
@@ -140,10 +143,7 @@ fn spawn_text_field<M: Bundle, T: Bundle, C: Bundle>(
         .with_children(|col| {
             col.spawn((
                 Text::new(label),
-                TextFont {
-                    font_size: 30.0,
-                    ..default()
-                },
+                text_font.clone(),
             ));
 
             col.spawn((
@@ -166,10 +166,7 @@ fn spawn_text_field<M: Bundle, T: Bundle, C: Bundle>(
                     text_marker,
                     (
                         Text::new(""),
-                        TextFont {
-                            font_size: 30.0,
-                            ..default()
-                        },
+                        text_font.clone(),
                     ),
                 ));
                 // Cursor: thin rectangle
