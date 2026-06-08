@@ -9,7 +9,7 @@ assets/*
 .env
 **/*.so
 **/*.jar
-
+**/.cxx/
 **/dist
 **/*.mp3
 **/assets
