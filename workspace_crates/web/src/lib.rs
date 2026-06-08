@@ -11,3 +11,5 @@ pub fn is_mobile() -> bool {
     debug!("is_mobile call returns {result}");
     result
 }
+
+pub const BEVY_CANVAS_ID: &str = "bevy_canvas";

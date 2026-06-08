@@ -66,7 +66,33 @@ impl Plugin for MobileInputPlugin {
     fn build(&self, app: &mut App) {
         setup_event_listeners();
         app.add_systems(First, poll_events);
+        app.add_systems(Startup, setup_focus_guard);
     }
+}
+
+fn setup_focus_guard() {
+    use web::BEVY_CANVAS_ID;
+    js_sys::eval(&format!(
+        r#"
+        (function() {{
+            window.keyboardOpen = false;
+            window.setKeyboardOpen = (val) => {{ window.keyboardOpen = val; }};
+
+            const canvas = document.getElementById('{BEVY_CANVAS_ID}');
+            if (!canvas) {{
+            console.warn("Canvas not found: {BEVY_CANVAS_ID}");
+                return;
+                }}
+            canvas.addEventListener('focus', () => {{
+                const input = document.getElementById('{MOBILE_INPUT_ELEMENT_ID}');
+                if (window.keyboardOpen && document.activeElement !== input) {{
+                    input?.focus();
+                }}
+            }}, {{ capture: true }});
+        }})();
+    "#
+    ))
+    .unwrap();
 }
 
 fn get_input_element() -> Option<HtmlInputElement> {

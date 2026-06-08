@@ -26,7 +26,7 @@ pub fn main() {
             // #[cfg(target_arch = "wasm32")]
             // prevent_default_event_handling: true,
             #[cfg(target_arch = "wasm32")]
-            canvas: Some("#bevy_canvas".to_string()),
+            canvas: Some(format!("#{}", web::BEVY_CANVAS_ID)),
 
             ..default()
         }),
