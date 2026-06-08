@@ -1,4 +1,7 @@
 use bevy::log::LogPlugin;
+use bevy::window::WindowMode;
+#[cfg(target_os = "android")]
+use bevy::winit::WinitSettings;
 use bevy::{prelude::*, window::WindowResolution};
 use launcher::LauncherPlugin;
 use shared::AppState;
@@ -21,12 +24,14 @@ pub fn main() {
     let window_plugin_config = WindowPlugin {
         primary_window: Some(Window {
             title: "Placeholder title".into(),
-            resolution: WindowResolution::new(800, 600),    
+            resolution: WindowResolution::new(800, 600),
 
-            // #[cfg(target_arch = "wasm32")]
-            // prevent_default_event_handling: true,
             #[cfg(target_arch = "wasm32")]
             canvas: Some(format!("#{}", web::BEVY_CANVAS_ID)),
+            #[cfg(target_os = "android")]
+            resizable: false,
+            #[cfg(target_os = "android")]
+            mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
 
             ..default()
         }),
@@ -51,5 +56,9 @@ pub fn main() {
     )
     .init_state::<AppState>()
     .add_plugins((StartupPlugin, LauncherPlugin));
+
+    #[cfg(target_os = "android")]
+    app.insert_resource(WinitSettings::mobile());
+    
     app.run();
 }
