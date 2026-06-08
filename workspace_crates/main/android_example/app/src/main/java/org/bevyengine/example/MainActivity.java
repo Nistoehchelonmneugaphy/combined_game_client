@@ -1,4 +1,4 @@
-package org.bevyengine.example;
+package org.cgc.main;
 
 import android.view.View;
 
