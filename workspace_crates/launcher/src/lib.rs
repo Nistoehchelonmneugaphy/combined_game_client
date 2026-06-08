@@ -98,13 +98,23 @@ fn setup_launcher_ui(
                 },
                 BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
             ))
-            .with_child(Text::new("Login"));
+            .with_child((
+                Text::new("Login"),
+                TextFont {
+                    font_size: 30.0,
+                    ..default()
+                },
+            ));
 
             // Error label (hidden until needed)
             p.spawn((
                 DespawnOnExit(AppState::Launcher),
                 ErrorLabel,
                 Text::new(""),
+                TextFont {
+                    font_size: 30.0,
+                    ..default()
+                },
                 TextColor(Color::srgb(1.0, 0.3, 0.3)),
             ));
         });
@@ -128,7 +138,13 @@ fn spawn_text_field<M: Bundle, T: Bundle, C: Bundle>(
             },
         ))
         .with_children(|col| {
-            col.spawn(Text::new(label));
+            col.spawn((
+                Text::new(label),
+                TextFont {
+                    font_size: 30.0,
+                    ..default()
+                },
+            ));
 
             col.spawn((
                 container_marker,
@@ -146,7 +162,16 @@ fn spawn_text_field<M: Bundle, T: Bundle, C: Bundle>(
                 BackgroundColor(Color::srgb(0.1, 0.1, 0.1)),
             ))
             .with_children(|row| {
-                row.spawn((text_marker, Text::new("")));
+                row.spawn((
+                    text_marker,
+                    (
+                        Text::new(""),
+                        TextFont {
+                            font_size: 30.0,
+                            ..default()
+                        },
+                    ),
+                ));
                 // Cursor: thin rectangle
                 row.spawn((
                     cursor_marker,
