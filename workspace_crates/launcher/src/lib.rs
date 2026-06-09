@@ -199,6 +199,14 @@ fn handle_text_input(
             web_mobile_input::show_keyboard();
         }
     }
+    #[cfg(target_os = "android")]
+    {
+        if username_pressed  {
+            android_mobile_input::show_keyboard("Username");
+        } else if password_pressed {
+             android_mobile_input::show_keyboard("Password");
+        }
+    }
     for ev in evr.read() {
         if ev.state != bevy::input::ButtonState::Pressed {
             continue;

@@ -6,6 +6,10 @@ edition = "2024"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 web_mobile_input = { workspace = true }
 
+
+[target.'cfg(target_os = "android")'.dependencies]
+android_mobile_input = { workspace = true }
+
 [dependencies]
 bevy = { workspace = true }
 serde_json = { workspace = true }

@@ -7,3 +7,4 @@ edition = "2024"
 android-activity = { version = "0.6.1", features = ["game-activity"] }
 bevy = { workspace = true }
 jni = "0.22.4"
+ndk-context = "0.1.1"

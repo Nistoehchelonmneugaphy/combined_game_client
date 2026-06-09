@@ -185,6 +185,7 @@ dependencies = [
  "android-activity",
  "bevy",
  "jni 0.22.4",
+ "ndk-context",
 ]
 
 [[package]]
@@ -3354,6 +3355,7 @@ dependencies = [
 name = "launcher"
 version = "0.1.0"
 dependencies = [
+ "android_mobile_input",
  "auth_system_structs",
  "bevy",
  "ehttp",
@@ -3488,6 +3490,7 @@ dependencies = [
 name = "main"
 version = "0.1.0"
 dependencies = [
+ "android_mobile_input",
  "bevy",
  "dotenvy",
  "launcher",
