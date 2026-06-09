@@ -9,8 +9,13 @@ web = { workspace = true }
 web_mobile_input = { workspace = true }
 
 [lib]
-name = "main"
+name = "client_app_rust_lib"
 crate-type = ["lib", "cdylib"]
+
+[[bin]]
+name = "client_app_rust_bin"
+path = "src/main.rs"
+
 
 [dependencies]
 dotenvy = { workspace = true }

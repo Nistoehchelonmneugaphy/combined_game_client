@@ -6,7 +6,7 @@ import com.google.androidgamesdk.GameActivity;
 
 public class MainActivity extends GameActivity {
     static {
-        System.loadLibrary("main");
+        System.loadLibrary("client_app_rust_lib");
     }
 
     @Override

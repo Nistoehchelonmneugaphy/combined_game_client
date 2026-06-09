@@ -1,7 +1,6 @@
-use bevy::window::WindowMode;
 #[cfg(target_os = "android")]
 use bevy::winit::WinitSettings;
-use bevy::{log::LogPlugin, window::AppLifecycle};
+use bevy::{log::LogPlugin};
 use bevy::{prelude::*, window::WindowResolution};
 use launcher::LauncherPlugin;
 use shared::AppState;
@@ -12,7 +11,7 @@ use web_mobile_input;
 
 #[bevy_main]
 pub fn main() {
-    println!("hey there");
+    println!("hey there!!! :)");
     #[cfg(target_arch = "wasm32")]
     web::console_error_panic_hook::set_once();
     let mut app = App::new();
@@ -31,7 +30,7 @@ pub fn main() {
             #[cfg(target_os = "android")]
             resizable: false,
             #[cfg(target_os = "android")]
-            mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
+            mode: bevy::window::WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
 
             ..default()
         }),
@@ -70,6 +69,10 @@ pub fn main() {
 
 // Pause audio when app goes into background and resume when it returns.
 // This is handled by the OS on iOS, but not on Android.
+
+#[cfg(target_os = "android")]
+use bevy::window::AppLifecycle;
+#[cfg(target_os = "android")]
 fn handle_lifetime(
     mut app_lifecycle_reader: MessageReader<AppLifecycle>,
     music_controller: Single<&AudioSink>,
