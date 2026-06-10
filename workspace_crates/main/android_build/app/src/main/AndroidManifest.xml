@@ -4,7 +4,7 @@
 
     <application
         android:icon="@mipmap/ic_launcher"
-        android:label="Main (Launcher)"
+        android:label="CGC"
         android:roundIcon="@mipmap/ic_launcher"
         android:theme="@style/Theme.AppCompat.NoActionBar"
         tools:targetApi="33">

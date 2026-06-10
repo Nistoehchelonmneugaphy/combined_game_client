@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Main (Launcher)"
+rootProject.name = "Bevy Example"
 include ':app'
