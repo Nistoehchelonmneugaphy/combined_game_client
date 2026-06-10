@@ -166,6 +166,7 @@ name = "android_mobile_input"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "jni 0.22.4",
 ]
 
 [[package]]
