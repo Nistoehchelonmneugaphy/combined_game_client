@@ -23,7 +23,6 @@ impl Plugin for AndroidMobileInputPlugin {
 }
 
 pub fn show_keyboard(hint: &str) {
-    // below does nothing except crash, so...
     let android_app = bevy::android::ANDROID_APP.get().unwrap();
 
     let vm = unsafe { jni::JavaVM::from_raw(android_app.vm_as_ptr().cast()) };
