@@ -98,7 +98,7 @@ fn setup_launcher_ui(
                 },
                 BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
             ))
-            .with_child(Text::new("Mega Login Button"));
+            .with_child(Text::new("Login!"));
 
             // Error label (hidden until needed)
             p.spawn((
