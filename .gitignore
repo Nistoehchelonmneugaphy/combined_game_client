@@ -8,7 +8,6 @@ assets/*
 **/app/build
 .env
 **/*.so
-**/*.jar
 
 **/dist
 **/*.mp3
