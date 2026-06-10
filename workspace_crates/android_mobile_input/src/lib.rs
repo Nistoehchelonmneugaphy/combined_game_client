@@ -23,6 +23,7 @@ impl Plugin for AndroidMobileInputPlugin {
 }
 
 pub fn show_keyboard(hint: &str) {
+    let existing_value = "test";
     warn!("Calling android_mobile_input::show_keyboard()");
     let android_app = bevy::android::ANDROID_APP.get().unwrap();
 
@@ -35,11 +36,12 @@ pub fn show_keyboard(hint: &str) {
         // SAFETY: The reference / pointer is valid as long as `app` is valid
         let activity = unsafe { env.as_cast_raw::<Global<JObject>>(&raw_activity_global)? };
         let hint_jstring = env.new_string(hint).unwrap();
+        let existing_value_jstring = env.new_string(existing_value).unwrap();
         env.call_method(
             &activity,
             jni_str!("showFloatingInput"),
-            jni_sig!("(Ljava/lang/String;)V"),
-            &[JValue::Object(&hint_jstring.into())],
+            jni_sig!("(Ljava/lang/String;Ljava/lang/String;)V"),
+            &[JValue::Object(&existing_value_jstring.into()), JValue::Object(&hint_jstring.into())],
         )
         .unwrap();
 

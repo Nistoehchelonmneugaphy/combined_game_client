@@ -1,3 +1,4 @@
+// FloatingInput.java
 package org.cgc.main;
 
 import android.content.Context;
@@ -79,7 +80,7 @@ public class FloatingInput {
         container.setPadding(pad, pad / 2, pad, pad / 2);
     }
 
-    public void show(String hint) {
+    public void show(String existingValue, String hint) {
         if (visible) return;
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
@@ -97,7 +98,7 @@ public class FloatingInput {
             WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN;
 
         editText.setHint(hint);
-        editText.setText("");
+        editText.setText(existingValue);
         windowManager.addView(container, params);
         visible = true;
 

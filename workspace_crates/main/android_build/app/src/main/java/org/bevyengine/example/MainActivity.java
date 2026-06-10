@@ -1,3 +1,4 @@
+// MainActivity.java
 package org.cgc.main;
 
 import android.os.*;
@@ -23,8 +24,8 @@ public class MainActivity extends GameActivity {
     return instance;
     }
     // Called from Rust via JNI
-    public void showFloatingInput(String hint) {
-        mainHandler.post(() -> floatingInput.show(hint));
+    public void showFloatingInput(String existingValue, String hint) {
+        mainHandler.post(() -> floatingInput.show(existingValue, hint));
     }
 
     // Called from Rust via JNI
