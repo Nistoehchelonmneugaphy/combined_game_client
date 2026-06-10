@@ -90,64 +90,64 @@ fn poll_events(mut keyboard_events: MessageWriter<KeyboardInput>) {
 }
 
 // OMG my first unsafe code!!!
-#[unsafe(no_mangle)]
-pub extern "C" fn Java_org_cgc_main_FloatingInput_onTextChanged(
-    _env: jni::EnvUnowned,
-    _class: jni::objects::JClass,
-    text: jni::objects::JString,
-) {
-    let text: String = jni::objects::JString::from(text).to_string();
-    let Ok(mut queue) = EVENT_QUEUE.lock() else {
-        return;
-    };
-    for ch in text.chars() {
-        let event = KeyboardInput {
-            key_code: KeyCode::Unidentified(bevy::input::keyboard::NativeKeyCode::Unidentified),
-            logical_key: Key::Character(ch.to_string().into()),
-            state: ButtonState::Pressed,
-            repeat: false,
-            text: Some(ch.to_string().into()),
-            window: Entity::PLACEHOLDER,
-        };
-        let mut release = event.clone();
-        release.state = ButtonState::Released;
-        release.text = None;
-        queue.push(event);
-        queue.push(release);
-    }
-}
-#[derive(Resource)]
-pub struct AndroidAppResource(pub AndroidApp);
+// #[unsafe(no_mangle)]
+// pub extern "C" fn Java_org_cgc_main_FloatingInput_onTextChanged(
+//     _env: jni::EnvUnowned,
+//     _class: jni::objects::JClass,
+//     text: jni::objects::JString,
+// ) {
+//     let text: String = jni::objects::JString::from(text).to_string();
+//     let Ok(mut queue) = EVENT_QUEUE.lock() else {
+//         return;
+//     };
+//     for ch in text.chars() {
+//         let event = KeyboardInput {
+//             key_code: KeyCode::Unidentified(bevy::input::keyboard::NativeKeyCode::Unidentified),
+//             logical_key: Key::Character(ch.to_string().into()),
+//             state: ButtonState::Pressed,
+//             repeat: false,
+//             text: Some(ch.to_string().into()),
+//             window: Entity::PLACEHOLDER,
+//         };
+//         let mut release = event.clone();
+//         release.state = ButtonState::Released;
+//         release.text = None;
+//         queue.push(event);
+//         queue.push(release);
+//     }
+// }
+// #[derive(Resource)]
+// pub struct AndroidAppResource(pub AndroidApp);
 
-/// Called from Java for Enter / Backspace
-#[unsafe(no_mangle)]
-pub extern "C" fn Java_org_cgc_main_FloatingInput_onSpecialKey(
-    _env: jni::EnvUnowned,
-    _class: jni::objects::JClass,
-    key: jni::objects::JString,
-) {
-    let key: String = jni::objects::JString::from(key).to_string();
-    let (key_code, logical_key) = match key.as_str() {
-        "Enter" => (KeyCode::Enter, Key::Enter),
-        "Backspace" => (KeyCode::Backspace, Key::Backspace),
-        "Escape" => (KeyCode::Escape, Key::Escape),
-        _ => return,
-    };
-    let Ok(mut queue) = EVENT_QUEUE.lock() else {
-        return;
-    };
-    let event = KeyboardInput {
-        key_code,
-        logical_key,
-        state: ButtonState::Pressed,
-        repeat: false,
-        text: None,
-        window: Entity::PLACEHOLDER,
-    };
-    let mut release = event.clone();
-    release.state = ButtonState::Released;
-    release.text = None;
+// /// Called from Java for Enter / Backspace
+// #[unsafe(no_mangle)]
+// pub extern "C" fn Java_org_cgc_main_FloatingInput_onSpecialKey(
+//     _env: jni::EnvUnowned,
+//     _class: jni::objects::JClass,
+//     key: jni::objects::JString,
+// ) {
+//     let key: String = jni::objects::JString::from(key).to_string();
+//     let (key_code, logical_key) = match key.as_str() {
+//         "Enter" => (KeyCode::Enter, Key::Enter),
+//         "Backspace" => (KeyCode::Backspace, Key::Backspace),
+//         "Escape" => (KeyCode::Escape, Key::Escape),
+//         _ => return,
+//     };
+//     let Ok(mut queue) = EVENT_QUEUE.lock() else {
+//         return;
+//     };
+//     let event = KeyboardInput {
+//         key_code,
+//         logical_key,
+//         state: ButtonState::Pressed,
+//         repeat: false,
+//         text: None,
+//         window: Entity::PLACEHOLDER,
+//     };
+//     let mut release = event.clone();
+//     release.state = ButtonState::Released;
+//     release.text = None;
 
-    queue.push(event);
-    queue.push(release);
-}
+//     queue.push(event);
+//     queue.push(release);
+// }
