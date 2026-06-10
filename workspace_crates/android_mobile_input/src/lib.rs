@@ -77,11 +77,12 @@ fn poll_events(mut keyboard_events: MessageWriter<KeyboardInput>) {
 
 // OMG my first unsafe code!!!
 #[unsafe(no_mangle)]
-pub extern "C" fn Java_org_cgc_main_FloatingInput_onTextChanged(
+pub extern "system" fn Java_org_cgc_main_FloatingInput_onTextChanged(
     _env: jni::EnvUnowned,
     _class: jni::objects::JClass,
     text: jni::objects::JString,
 ) {
+    info!("Called Rust fn from Java, Yay!");
     let text: String = jni::objects::JString::from(text).to_string();
     let Ok(mut queue) = EVENT_QUEUE.lock() else {
         return;
