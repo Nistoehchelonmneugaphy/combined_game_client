@@ -19,7 +19,7 @@ web = { path = "workspace_crates/web" }
 startup = { path = "workspace_crates/startup" }
 shared = { path = "workspace_crates/shared" }
 auth_system_structs = { git = "ssh://git@github.com/Aeroel/auth_system.git" }
-bevy = { version = "=0.19.0-rc.2", features = [
+bevy = { version = "0.18.1", features = [
     "free_camera","debug", "serialize", "mp3",
     ] }
 bevy_renet = "4.0.1"
