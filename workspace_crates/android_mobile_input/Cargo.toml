@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 
+
 [target.'cfg(target_os = "android")'.dependencies]
 bevy = { workspace = true }
 android-activity = { version = "0.6.1", features = ["game-activity"] }
