@@ -64,7 +64,7 @@ pub fn main() {
             Update,
             handle_lifetime.run_if(any_with_component::<AudioSink>),
         );
-        app.add_plugins(android_mobile_input::AndroidMobileInputPlugin);
+       // app.add_plugins(android_mobile_input::AndroidMobileInputPlugin);
     }
     app.run();
 }
