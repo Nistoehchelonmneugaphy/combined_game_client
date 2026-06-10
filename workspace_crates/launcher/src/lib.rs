@@ -175,6 +175,7 @@ fn handle_text_input(
     mut evr: MessageReader<bevy::input::keyboard::KeyboardInput>,
     username_field_interaction_query: Query<&Interaction, With<UsernameInput>>,
     password_field_interaction_query: Query<&Interaction, With<PasswordInput>>,
+    anywhere_else_interaction_query: Query<&Interaction, (Without<UsernameInput>, Without<PasswordInput>)>,
     mut username_text: Query<&mut Text, (With<UsernameText>, Without<PasswordText>)>,
     mut password_text: Query<&mut Text, (With<PasswordText>, Without<UsernameText>)>,
 ) {
@@ -182,6 +183,9 @@ fn handle_text_input(
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
     let password_pressed = password_field_interaction_query
+        .single()
+        .is_ok_and(|i| *i == Interaction::Pressed);
+    let anywhere_else_pressed = anywhere_else_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
 
@@ -201,10 +205,12 @@ fn handle_text_input(
     }
     #[cfg(target_os = "android")]
     {
-        if username_pressed  {
-            android_mobile_input::show_keyboard("Username");
+        if username_pressed {
+            android_mobile_input::show_keyboard(&form.username, "Username");
         } else if password_pressed {
-             android_mobile_input::show_keyboard("Password");
+            android_mobile_input::show_keyboard(&form.password, "Password");
+        } else if anywhere_else_pressed {
+            android_mobile_input::hide_keyboard();
         }
     }
     for ev in evr.read() {
