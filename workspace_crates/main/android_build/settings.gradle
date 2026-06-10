@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Bevy Example"
+rootProject.name = "Game Client"
 include ':app'

@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'org.cgc.main'
+    namespace 'org.bevyengine.example'
     compileSdk 34
 
     defaultConfig {
-        applicationId "org.cgc.main"
+        applicationId "org.bevyengine.example"
         minSdk 31
         targetSdk 33
         versionCode 1
