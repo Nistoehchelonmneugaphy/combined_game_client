@@ -83,8 +83,9 @@ pub extern "system" fn Java_org_cgc_main_FloatingInput_onTextChanged(
     _class: jni::objects::JClass,
     text: jni::objects::JString,
 ) {
-    info!("Called Rust fn from Java, Yay!");
+    
     let text: String = jni::objects::JString::from(text).to_string();
+warn!("Called Rust fn from Java, Yay! text: {text}");
     let Ok(mut queue) = EVENT_QUEUE.lock() else {
         return;
     };
@@ -115,6 +116,7 @@ pub extern "C" fn Java_org_cgc_main_FloatingInput_onSpecialKey(
     key: jni::objects::JString,
 ) {
     let key: String = jni::objects::JString::from(key).to_string();
+    warn!("Java_org_cgc_main_FloatingInput_onSpecialKey: {key}");
     let (key_code, logical_key) = match key.as_str() {
         "Enter" => (KeyCode::Enter, Key::Enter),
         "Backspace" => (KeyCode::Backspace, Key::Backspace),
