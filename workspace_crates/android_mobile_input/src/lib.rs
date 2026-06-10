@@ -23,6 +23,7 @@ impl Plugin for AndroidMobileInputPlugin {
 }
 
 pub fn show_keyboard(hint: &str) {
+    warn!("Calling android_mobile_input::show_keyboard()");
     let android_app = bevy::android::ANDROID_APP.get().unwrap();
 
     let vm = unsafe { jni::JavaVM::from_raw(android_app.vm_as_ptr().cast()) };
