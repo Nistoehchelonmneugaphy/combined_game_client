@@ -103,13 +103,13 @@ public class FloatingInput {
         visible = true;
 
         // Request focus + show IME
-        editText.post(() -> {
+        editText.postDelayed(() -> {
             editText.requestFocus();
             InputMethodManager imm = (InputMethodManager)
                 editText.getContext()
                     .getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
-        });
+        }, 400);
     }
 
     public void hide() {
