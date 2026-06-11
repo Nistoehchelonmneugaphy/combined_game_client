@@ -175,7 +175,7 @@ fn handle_text_input(
     mut evr: MessageReader<bevy::input::keyboard::KeyboardInput>,
     username_field_interaction_query: Query<&Interaction, With<UsernameInput>>,
     password_field_interaction_query: Query<&Interaction, With<PasswordInput>>,
-    anywhere_else_interaction_query: Query<&Interaction, (Without<UsernameInput>, Without<PasswordInput>)>,
+    #[cfg(target_os = "android")] anywhere_else_interaction_query: Query<&Interaction, (Without<UsernameInput>, Without<PasswordInput>)>,
     mut username_text: Query<&mut Text, (With<UsernameText>, Without<PasswordText>)>,
     mut password_text: Query<&mut Text, (With<PasswordText>, Without<UsernameText>)>,
 ) {
@@ -185,7 +185,7 @@ fn handle_text_input(
     let password_pressed = password_field_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
-    let anywhere_else_pressed = anywhere_else_interaction_query
+    #[cfg(target_os = "android")] let anywhere_else_pressed = anywhere_else_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
 
@@ -360,6 +360,7 @@ fn login_request(
             Ok(r) => {
                 let Ok(resp) = serde_json::from_slice::<LoginResponse>(&r.bytes) else {
                     error!("Could not shape response into LoginResponse.");
+                    error!("Response bytes: {:#?}, response headers: {:#?}",String::from_utf8_lossy(&r.bytes), &r.headers);
                     queue.push(Err(CouldNotContactAuthServer));
                     return;
                 };
