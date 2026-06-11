@@ -399,6 +399,7 @@ fn poll_login_response(
                     if let Ok(mut text) = error_q.single_mut() {
                         **text = "Login successful".to_string();
                     }
+                    debug!("Switching to ServerSelect state");
                     next_state.set(LauncherState::ServerSelect);
                 }
                 LoginResponse::Error(err) => {
