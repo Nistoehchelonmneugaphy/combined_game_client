@@ -71,18 +71,19 @@ pub fn main() {
 }
 
 fn add_camera_2d(mut commands: Commands) {
-        commands.spawn(Camera2d);
+    commands.spawn(Camera2d);
 }
 
 // Pause audio when app goes into background and resume when it returns.
 // This is handled by the OS on iOS, but not on Android.
 
 #[cfg(target_os = "android")]
+use bevy::window::AppLifecycle;
+#[cfg(target_os = "android")]
 fn handle_lifetime(
     mut app_lifecycle_reader: MessageReader<AppLifecycle>,
     music_controller: Single<&AudioSink>,
 ) {
-    use bevy::window::AppLifecycle;
     for app_lifecycle in app_lifecycle_reader.read() {
         match app_lifecycle {
             AppLifecycle::Idle | AppLifecycle::WillSuspend | AppLifecycle::WillResume => {}
