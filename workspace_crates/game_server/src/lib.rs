@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use shared::{AppState, set_title};
+use shared::{AppConfig, AppState, Session, set_title};
 pub struct GameServerPlugin;
 
 #[derive(SubStates, Default, Clone, Eq, PartialEq, Hash, Debug)]
@@ -15,11 +15,12 @@ impl Plugin for GameServerPlugin {
         app.add_sub_state::<GameServerState>();
         app.add_systems(
             OnEnter(GameServerState::Authentication),
-            setup_authentication_ui,
+            (setup_authentication_ui, authenticate),
         );
-        add_authentication_systems(app);
+       
 
         app.add_systems(OnEnter(GameServerState::HomeScreen), setup_homescreen_ui);
+
     }
 }
 
@@ -57,6 +58,15 @@ fn setup_authentication_ui(mut commands: Commands, mut windows: Query<&mut Windo
             .with_child(Text::new("Authenticating to the server..."));
         });
 }
-fn add_authentication_systems(_app: &mut App) {}
 
 fn setup_homescreen_ui() {}
+
+
+fn authenticate(app_config: Res<AppConfig>, session: Res<Session>) {
+    let app_config = app_config.clone();
+    let session = session.clone();
+    let game_server_url = app_config.game_server_url;
+    // step 1: get nonce from server
+    
+    
+}

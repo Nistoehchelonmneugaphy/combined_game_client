@@ -2,9 +2,9 @@ use std::{sync::{Arc, Mutex}, time::Duration};
 
 use auth_system_structs::public_api::{LoginErrorKind, LoginRequest, LoginResponse, PublicAPIAction::{self}};
 use bevy::prelude::*;
-use shared::{AppConfig, set_title};
+use shared::{AppConfig, Session, set_title};
 
-use crate::structs::{LauncherState, Session};
+use crate::structs::{LauncherState};
 
 
 

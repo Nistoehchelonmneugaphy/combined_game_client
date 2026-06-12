@@ -16,6 +16,12 @@ pub struct AppConfig {
     pub game_server_url: String,
 }
 
+#[derive(Resource, Clone, Debug)]
+pub struct Session {
+    pub token: String,
+    pub user_id: String,
+}
+
 #[derive(Deserialize, Asset, TypePath, Debug)]
 pub struct AppConfigAsset {
     pub auth_server_url: String,
