@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_mod_reqwest::{BevyReqwest, JsonResponse, ReqwestErrorEvent, ReqwestPlugin};
+use bevy_mod_reqwest::{BevyReqwest, ReqwestErrorEvent, ReqwestPlugin, ReqwestResponseEvent};
 use game_server_structs::{ServerNonceResponse, get_server_path};
 use shared::{AppConfig, AppState, Session, set_title};
 pub struct GameServerClientPlugin;
@@ -63,6 +63,7 @@ fn setup_authentication_ui(mut commands: Commands, mut windows: Query<&mut Windo
 fn setup_homescreen_ui() {}
 
 fn authenticate(app_config: Res<AppConfig>, session: Res<Session>, mut client: BevyReqwest) {
+    debug!("Entered authenticate");
     let app_config = app_config.clone();
     let _session = session.clone();
     let game_server_url = app_config.game_server_url;
@@ -74,9 +75,14 @@ fn authenticate(app_config: Res<AppConfig>, session: Res<Session>, mut client: B
     let req = client.post(url).build().unwrap();
     client
         .send(req)
-        .on_json_response(|trigger: On<JsonResponse<ServerNonceResponse>>| {
-            let nonce: &ServerNonceResponse = &trigger.event().data;
-            debug!("Nonce: {:#?}", nonce.clone());
+          .on_response(|req: On<ReqwestResponseEvent>| {
+            let req = req.event();
+            let Ok(nonce) = serde_json::from_slice::<ServerNonceResponse>(&req.body()) else {
+                    error!("Could not shape response into ServerNonceResponse.");
+                    error!("Response bytes: {:#?}, response headers: {:#?}",String::from_utf8_lossy(&req.body()), &req.response_headers());
+                    return;
+                };
+            debug!("Step 1 success: nonce: {nonce:?}");
         }) // In case of request error, it can be reached using an observersystem
         .on_error(|trigger: On<ReqwestErrorEvent>| {
             let e = &trigger.event().error;
