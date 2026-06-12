@@ -24,4 +24,5 @@ dotenvy = { workspace = true }
 bevy = { workspace = true, features = ["android-game-activity"] }
 launcher = { workspace = true }
 startup = { workspace = true }
+game_server = { workspace = true }
 shared = { workspace = true }

@@ -97,7 +97,6 @@ pub fn setup_launcher_login_ui(
         AudioPlayer::new(asset_server.load("audio/launcher/ambience/launcher_2.mp3")),
         PlaybackSettings::LOOP,
     ));
-    commands.spawn((DespawnOnExit(LauncherState::Login), Camera2d));
     commands.init_resource::<LoginForm>();
     commands.init_resource::<CursorBlink>();
     commands.init_resource::<LoginResultQueue>();

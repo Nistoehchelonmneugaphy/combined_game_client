@@ -1,5 +1,6 @@
 use bevy::log::LogPlugin;
 use bevy::{prelude::*, window::WindowResolution};
+use game_server::GameServerPlugin;
 use launcher::LauncherPlugin;
 use shared::AppState;
 use startup::StartupPlugin;
@@ -10,12 +11,13 @@ use web_mobile_input;
 #[bevy_main]
 pub fn main() {
     println!("hey there!!! :)");
-    
+
     // Without this, error console.logs in wasm builds are rather unhelpful, but adding this adds helpful stack traces of where errors occurred
     #[cfg(target_arch = "wasm32")]
     web::make_console_errors_more_helpful();
 
     let mut app = App::new();
+    app.add_systems(Startup, add_camera_2d);
 
     #[cfg(target_arch = "wasm32")]
     app.add_plugins(web_mobile_input::MobileInputPlugin);
@@ -49,7 +51,7 @@ pub fn main() {
     };
     let log_plugin_config = LogPlugin {
         level: bevy::log::Level::WARN,
-        filter: "wgpu=error,bevy=info,main=warn,launcher=debug,shared=debug,startup=debug,web_mobile_input=debug,web=debug"
+        filter: "wgpu=error,bevy=info,main=warn,launcher=debug,shared=debug,startup=debug,web_mobile_input=debug,web=debug,game_server=debug"
             .to_string(),
         ..default()
     };
@@ -65,9 +67,12 @@ pub fn main() {
             .set(asset_server_plugin_config),
     )
     .init_state::<AppState>()
-    .add_plugins((StartupPlugin, LauncherPlugin));
-
+    .add_plugins((StartupPlugin, LauncherPlugin, GameServerPlugin));
     app.run();
+}
+
+fn add_camera_2d(mut commands: Commands) {
+        commands.spawn(Camera2d);
 }
 
 // Pause audio when app goes into background and resume when it returns.

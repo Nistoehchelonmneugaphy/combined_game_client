@@ -24,6 +24,7 @@ impl Plugin for GameServerPlugin {
 }
 
 fn setup_authentication_ui(mut commands: Commands, mut windows: Query<&mut Window>) {
+    debug!("From setup_authentication_ui");
     let launcher_title = "Authenticating...";
 
     if let Ok(mut window) = windows.single_mut() {
@@ -52,7 +53,6 @@ fn setup_authentication_ui(mut commands: Commands, mut windows: Query<&mut Windo
                     padding: UiRect::axes(Val::Px(24.0), Val::Px(10.0)),
                     ..default()
                 },
-                BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
             ))
             .with_child(Text::new("Authenticating to the server..."));
         });
