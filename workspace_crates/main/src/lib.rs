@@ -74,6 +74,7 @@ fn add_camera_2d(mut commands: Commands) {
     commands.spawn(Camera2d);
 }
 
+
 // Pause audio when app goes into background and resume when it returns.
 // This is handled by the OS on iOS, but not on Android.
 
