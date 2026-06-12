@@ -2614,6 +2614,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "game_server"
+version = "0.1.0"
+dependencies = [
+ "android_mobile_input",
+ "auth_system_structs",
+ "bevy",
+ "ehttp",
+ "serde_json",
+ "shared",
+ "web",
+ "web_mobile_input",
+]
+
+[[package]]
 name = "gethostname"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

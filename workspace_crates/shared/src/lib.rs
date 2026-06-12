@@ -6,7 +6,7 @@ pub enum AppState {
     #[default]
     Startup,
     Launcher,
-    Server,
+    GameServer,
     Match,
 }
 
