@@ -1,5 +1,5 @@
 [package]
-name = "game_server"
+name = "game_server_client"
 version = "0.1.0"
 edition = "2024"
 
@@ -17,3 +17,5 @@ serde_json = { workspace = true }
 ehttp = { workspace = true }
 shared = { workspace = true }
 auth_system_structs = { workspace = true }
+game_server_structs = { workspace = true }
+bevy_mod_reqwest = { workspace = true }

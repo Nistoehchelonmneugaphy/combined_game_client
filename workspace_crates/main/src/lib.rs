@@ -1,6 +1,6 @@
 use bevy::log::LogPlugin;
 use bevy::{prelude::*, window::WindowResolution};
-use game_server::GameServerPlugin;
+use game_server_client::GameServerClientPlugin;
 use launcher::LauncherPlugin;
 use shared::AppState;
 use startup::StartupPlugin;
@@ -18,7 +18,6 @@ pub fn main() {
 
     let mut app = App::new();
     app.add_systems(Startup, add_camera_2d);
-
     #[cfg(target_arch = "wasm32")]
     app.add_plugins(web_mobile_input::MobileInputPlugin);
 
@@ -51,7 +50,7 @@ pub fn main() {
     };
     let log_plugin_config = LogPlugin {
         level: bevy::log::Level::WARN,
-        filter: "wgpu=error,bevy=info,main=warn,launcher=debug,shared=debug,startup=debug,web_mobile_input=debug,web=debug,game_server=debug"
+        filter: "wgpu=error,bevy=info,main=warn,launcher=debug,shared=debug,startup=debug,web_mobile_input=debug,web=debug,game_server_client=debug"
             .to_string(),
         ..default()
     };
@@ -67,7 +66,7 @@ pub fn main() {
             .set(asset_server_plugin_config),
     )
     .init_state::<AppState>()
-    .add_plugins((StartupPlugin, LauncherPlugin, GameServerPlugin));
+    .add_plugins((StartupPlugin, LauncherPlugin, GameServerClientPlugin));
     app.run();
 }
 

@@ -1,6 +1,8 @@
 use bevy::prelude::*;
+use bevy_mod_reqwest::{BevyReqwest, JsonResponse, ReqwestErrorEvent, ReqwestPlugin};
+use game_server_structs::{ServerNonceResponse, get_server_path};
 use shared::{AppConfig, AppState, Session, set_title};
-pub struct GameServerPlugin;
+pub struct GameServerClientPlugin;
 
 #[derive(SubStates, Default, Clone, Eq, PartialEq, Hash, Debug)]
 #[source(AppState = AppState::GameServer)]
@@ -10,17 +12,16 @@ pub enum GameServerState {
     HomeScreen,
 }
 
-impl Plugin for GameServerPlugin {
+impl Plugin for GameServerClientPlugin {
     fn build(&self, app: &mut App) {
         app.add_sub_state::<GameServerState>();
+        app.add_plugins(ReqwestPlugin::default());
         app.add_systems(
             OnEnter(GameServerState::Authentication),
             (setup_authentication_ui, authenticate),
         );
-       
 
         app.add_systems(OnEnter(GameServerState::HomeScreen), setup_homescreen_ui);
-
     }
 }
 
@@ -61,12 +62,24 @@ fn setup_authentication_ui(mut commands: Commands, mut windows: Query<&mut Windo
 
 fn setup_homescreen_ui() {}
 
-
-fn authenticate(app_config: Res<AppConfig>, session: Res<Session>) {
+fn authenticate(app_config: Res<AppConfig>, session: Res<Session>, mut client: BevyReqwest) {
     let app_config = app_config.clone();
-    let session = session.clone();
+    let _session = session.clone();
     let game_server_url = app_config.game_server_url;
     // step 1: get nonce from server
-    
-    
+    let url = get_server_path(
+        &game_server_url,
+        game_server_structs::ServerAction::InitLogin,
+    );
+    let req = client.post(url).build().unwrap();
+    client
+        .send(req)
+        .on_json_response(|trigger: On<JsonResponse<ServerNonceResponse>>| {
+            let nonce: &ServerNonceResponse = &trigger.event().data;
+            debug!("Nonce: {:#?}", nonce.clone());
+        }) // In case of request error, it can be reached using an observersystem
+        .on_error(|trigger: On<ReqwestErrorEvent>| {
+            let e = &trigger.event().error;
+            debug!("bevy_mod_reqwest: req error: {e:?}");
+        });
 }
