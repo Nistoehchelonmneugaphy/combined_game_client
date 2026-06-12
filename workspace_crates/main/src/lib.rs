@@ -1,6 +1,4 @@
-#[cfg(target_os = "android")]
-use bevy::winit::WinitSettings;
-use bevy::{log::LogPlugin};
+use bevy::log::LogPlugin;
 use bevy::{prelude::*, window::WindowResolution};
 use launcher::LauncherPlugin;
 use shared::AppState;
@@ -14,10 +12,21 @@ pub fn main() {
     println!("hey there!!! :)");
     #[cfg(target_arch = "wasm32")]
     web::console_error_panic_hook::set_once();
+
     let mut app = App::new();
 
     #[cfg(target_arch = "wasm32")]
     app.add_plugins(web_mobile_input::MobileInputPlugin);
+
+    #[cfg(target_os = "android")]
+    {
+        app.insert_resource(bevy::winit::WinitSettings::mobile());
+        app.add_systems(
+            Update,
+            handle_lifetime.run_if(any_with_component::<AudioSink>),
+        );
+        app.add_plugins(android_mobile_input::AndroidMobileInputPlugin);
+    }
 
     // create default window will be changed later
     let window_plugin_config = WindowPlugin {
@@ -38,7 +47,7 @@ pub fn main() {
     };
     let log_plugin_config = LogPlugin {
         level: bevy::log::Level::WARN,
-        filter: "wgpu=error,bevy=info,main=warn,launcher=warn,shared=warn,startup=warn,web_mobile_input=warn,web=warn"
+        filter: "wgpu=error,bevy=info,main=warn,launcher=debug,shared=debug,startup=debug,web_mobile_input=debug,web=debug"
             .to_string(),
         ..default()
     };
@@ -56,16 +65,6 @@ pub fn main() {
     .init_state::<AppState>()
     .add_plugins((StartupPlugin, LauncherPlugin));
 
-    #[cfg(target_os = "android")]
-    {
-
-        app.insert_resource(WinitSettings::mobile());
-        app.add_systems(
-            Update,
-            handle_lifetime.run_if(any_with_component::<AudioSink>),
-        );
-       app.add_plugins(android_mobile_input::AndroidMobileInputPlugin);
-    }
     app.run();
 }
 
@@ -73,12 +72,11 @@ pub fn main() {
 // This is handled by the OS on iOS, but not on Android.
 
 #[cfg(target_os = "android")]
-use bevy::window::AppLifecycle;
-#[cfg(target_os = "android")]
 fn handle_lifetime(
     mut app_lifecycle_reader: MessageReader<AppLifecycle>,
     music_controller: Single<&AudioSink>,
 ) {
+    use bevy::window::AppLifecycle;
     for app_lifecycle in app_lifecycle_reader.read() {
         match app_lifecycle {
             AppLifecycle::Idle | AppLifecycle::WillSuspend | AppLifecycle::WillResume => {}
