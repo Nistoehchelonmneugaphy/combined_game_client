@@ -10,8 +10,10 @@ use web_mobile_input;
 #[bevy_main]
 pub fn main() {
     println!("hey there!!! :)");
+    
+    // Without this, error console.logs in wasm builds are rather unhelpful, but adding this adds helpful stack traces of where errors occurred
     #[cfg(target_arch = "wasm32")]
-    web::console_error_panic_hook::set_once();
+    web::make_console_errors_more_helpful();
 
     let mut app = App::new();
 
