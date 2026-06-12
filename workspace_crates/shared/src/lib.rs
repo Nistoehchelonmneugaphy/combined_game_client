@@ -32,7 +32,7 @@ pub fn set_title(window: &mut Window, title: &str) {
 }
 
 #[cfg(not(any(target_arch = "wasm32", target_os = "android", target_os = "ios")))]
-pub fn set_title_impl(window: &mut Window, title: &str) {
+fn set_title_impl(window: &mut Window, title: &str) {
     debug!("Setting window title to {title}");
     window.title = title.to_string();
 }
