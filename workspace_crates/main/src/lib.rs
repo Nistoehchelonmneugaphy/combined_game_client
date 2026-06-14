@@ -50,7 +50,7 @@ pub fn main() {
     };
     let log_plugin_config = LogPlugin {
         level: bevy::log::Level::WARN,
-        filter: "wgpu=error,bevy=info,main=warn,launcher=debug,shared=debug,startup=debug,web_mobile_input=debug,web=debug,game_server_client=debug"
+        filter: "wgpu=error,bevy_mod_reqwest=debug,bevy=info,main=warn,launcher=debug,shared=debug,startup=debug,web_mobile_input=debug,web=debug,game_server_client=debug"
             .to_string(),
         ..default()
     };
