@@ -72,7 +72,7 @@ fn setup_homescreen_ui(mut windows: Query<&mut Window>, cookie: Res<ServerCookie
     let cookie = cookie.clone();
     debug!("Server cookie: {:#?} ", cookie.0);
 
-     let launcher_title = "Homescreen";
+    let launcher_title = "Homescreen";
 
     if let Ok(mut window) = windows.single_mut() {
         set_title(&mut *window, launcher_title);
@@ -111,12 +111,14 @@ fn get_server_cookie(
         .send(req)
         .on_json_response(
             move |resp: On<JsonResponse<FinalLoginStepResponse>>,
-                  mut next_state: ResMut<NextState<GameServerState>>, mut server_cookie_resource: ResMut<ServerCookie>| {
+                  mut next_state: ResMut<NextState<GameServerState>>,
+                  mut server_cookie_resource: ResMut<ServerCookie>| {
                 let resp = resp.data.clone();
                 match resp {
                     FinalLoginStepResponse::Success(final_login_step_success) => {
                         debug!("FinalLoginStepResponse: success: {final_login_step_success:#?}");
-                        *server_cookie_resource = ServerCookie(Some(final_login_step_success.cookie_token.clone()));
+                        *server_cookie_resource =
+                            ServerCookie(Some(final_login_step_success.cookie_token.clone()));
                         next_state.set(GameServerState::HomeScreen);
                     }
                     FinalLoginStepResponse::Failure(final_login_step_error) => {
