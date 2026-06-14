@@ -1,9 +1,9 @@
 use std::sync::{Arc, Mutex};
 
-use auth_system_structs::public_api::CreateJoinTokenRequest;
+use auth_system_structs::public_api::{CreateJoinTokenRequest, CreateJoinTokenResponse};
 use bevy::prelude::*;
 use bevy_mod_reqwest::{BevyReqwest, ReqwestErrorEvent, ReqwestPlugin, ReqwestResponseEvent};
-use game_server_structs::{ServerNonceResponse, get_server_path};
+use game_server_structs::{FinalLoginStepRequest, FinalLoginStepResponse, ServerNonceResponse, get_server_path};
 use shared::{AppConfig, AppState, Session, set_title};
 pub struct GameServerClientPlugin;
 
@@ -15,6 +15,8 @@ pub enum GameServerState {
     HomeScreen,
 }
 
+
+
 impl Plugin for GameServerClientPlugin {
     fn build(&self, app: &mut App) {
         app.add_sub_state::<GameServerState>();
@@ -24,7 +26,7 @@ impl Plugin for GameServerClientPlugin {
             (setup_authentication_ui, authenticate),
         );
         app.insert_resource(SharedAuthenticationStepState(Arc::new(Mutex::new(
-            AuthenticationStepState::GetNonce,
+            AuthenticationStepState::GetServerNonce,
         ))));
 
         app.add_systems(OnEnter(GameServerState::HomeScreen), setup_homescreen_ui);
@@ -70,11 +72,18 @@ fn setup_homescreen_ui() {}
 
 #[derive(Debug, Clone, PartialEq)]
 enum AuthenticationStepState {
-    GetNonce,
+    GetServerNonce,
     GetJoinToken {
-        nonce: String,
+        server_nonce: String,
         session_token: String,
     },
+    GetServerCookie {
+        join_token: String,
+        server_nonce: String,
+    },
+    
+    Complete { server_cookie: String },
+    Failed,
 }
 #[derive(Resource, Clone)]
 struct SharedAuthenticationStepState(Arc<Mutex<AuthenticationStepState>>);
@@ -89,7 +98,7 @@ impl SharedAuthenticationStepState {
 fn authenticate(
     app_config: Res<AppConfig>,
     session: Res<Session>,
-    mut client: BevyReqwest,
+    client: BevyReqwest,
     auth_state: ResMut<SharedAuthenticationStepState>,
 ) {
     debug!("Entered authenticate");
@@ -101,17 +110,17 @@ fn authenticate(
         return;
     };
     match &*guard {
-        AuthenticationStepState::GetNonce => {
+        AuthenticationStepState::GetServerNonce => {
             let state = auth_state.clone();
             get_nonce(
                 state.clone(),
                 client,
-                game_server_url,
+                game_server_url.clone(),
                 session.token.clone(),
             );
         }
         AuthenticationStepState::GetJoinToken {
-            nonce,
+            server_nonce: nonce,
             session_token,
         } => {
             let state = auth_state.clone();
@@ -123,9 +132,76 @@ fn authenticate(
                 session_token.clone(),
             );
         }
+        AuthenticationStepState::GetServerCookie {
+            join_token,
+            server_nonce,
+        } => {
+            let state = auth_state.clone();
+            get_server_cookie(
+                state.clone(),
+                client,
+                game_server_url,
+                join_token.clone(),
+                server_nonce.clone(),
+            );
+        }
+        AuthenticationStepState::Complete { server_cookie} => {
+            debug!("Authentication success, server_cookie: {server_cookie}");
+        },
+        AuthenticationStepState::Failed => {
+            debug!("Authentication failure");
+        },
     }
 }
 
+fn get_server_cookie(
+    state: SharedAuthenticationStepState,
+    mut client: BevyReqwest,
+    game_server_url: String,
+    join_token: String,
+    server_nonce: String,
+) {
+    let url = get_server_path(
+        &game_server_url,
+        game_server_structs::ServerAction::FinalLoginStep,
+    );
+    let req = client
+        .post(url)
+        .json(&FinalLoginStepRequest {
+            join_token,
+            server_nonce,
+        })
+        .build()
+        .unwrap();
+    client
+        .send(req)
+        .on_response(move |req: On<ReqwestResponseEvent>| {
+            let req = req.event();
+            let Ok(resp) = serde_json::from_slice::<FinalLoginStepResponse>(&req.body()) else {
+                error!("Could not shape response into FinalLoginStepResponse.");
+                error!(
+                    "Response bytes: {:#?}, response headers: {:#?}",
+                    String::from_utf8_lossy(&req.body()),
+                    &req.response_headers()
+                );
+                return;
+            };
+            match resp {
+                FinalLoginStepResponse::Success(final_login_step_success) => {
+                    debug!("FinalLoginStepResponse: success: {final_login_step_success:#?}");
+                    state.update_state(AuthenticationStepState::Complete { server_cookie: final_login_step_success.cookie_token });
+                },
+                FinalLoginStepResponse::Failure(final_login_step_error) => {
+                    debug!("final_login_step_error: {final_login_step_error:#?}");
+                    state.update_state(AuthenticationStepState::Failed);
+                },
+            }
+        }) // In case of request error, it can be reached using an observersystem
+        .on_error(|trigger: On<ReqwestErrorEvent>| {
+            let e = &trigger.event().error;
+            debug!("bevy_mod_reqwest: req error: {e:?}");
+        });
+}
 fn get_join_token(
     state: SharedAuthenticationStepState,
     mut client: BevyReqwest,
@@ -137,7 +213,44 @@ fn get_join_token(
         auth_server_url.to_string(),
         auth_system_structs::public_api::PublicAPIAction::CreateJoinToken,
     );
-    let req = client.post(url).json(&CreateJoinTokenRequest { session_token, server_nonce: nonce }).build().unwrap();
+    let req = client
+        .post(url)
+        .json(&CreateJoinTokenRequest {
+            session_token: session_token.clone(),
+            server_nonce: nonce.clone(),
+        })
+        .build()
+        .unwrap();
+    client
+        .send(req)
+        .on_response(move |req: On<ReqwestResponseEvent>| {
+            let req = req.event();
+            let Ok(resp) = serde_json::from_slice::<CreateJoinTokenResponse>(&req.body()) else {
+                error!("Could not shape response into CreateJoinTokenResponse.");
+                error!(
+                    "Response bytes: {:#?}, response headers: {:#?}",
+                    String::from_utf8_lossy(&req.body()),
+                    &req.response_headers()
+                );
+                return;
+            };
+            match resp {
+                CreateJoinTokenResponse::Success(create_join_token_success) => {
+                    debug!("Step 2 success: {create_join_token_success:#?}");
+                    state.update_state(AuthenticationStepState::GetServerCookie {
+                        join_token: create_join_token_success.join_token,
+                        server_nonce: nonce.clone(),
+                    });
+                }
+                CreateJoinTokenResponse::Error(create_join_token_error) => {
+                    debug!("Step 2 get join token error: {create_join_token_error:#?}");
+                }
+            }
+        }) // In case of request error, it can be reached using an observersystem
+        .on_error(|trigger: On<ReqwestErrorEvent>| {
+            let e = &trigger.event().error;
+            debug!("bevy_mod_reqwest: req error: {e:?}");
+        });
 }
 fn get_nonce(
     state: SharedAuthenticationStepState,
@@ -166,7 +279,7 @@ fn get_nonce(
             };
             debug!("Step 1 success: nonce: {nonce:?}");
             state.update_state(AuthenticationStepState::GetJoinToken {
-                nonce: nonce.0.clone(),
+                server_nonce: nonce.0.clone(),
                 session_token: session_token.clone(),
             });
         }) // In case of request error, it can be reached using an observersystem
