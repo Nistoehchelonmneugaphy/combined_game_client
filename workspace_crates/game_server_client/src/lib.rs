@@ -116,7 +116,7 @@ fn get_server_cookie(
                 let resp = resp.data.clone();
                 match resp {
                     FinalLoginStepResponse::Success(final_login_step_success) => {
-                        debug!("FinalLoginStepResponse: success: {final_login_step_success:#?}");
+                        debug!("Step 3 FinalLoginStepResponse: success: {final_login_step_success:#?}");
                         *server_cookie_resource =
                             ServerCookie(Some(final_login_step_success.cookie_token.clone()));
                         next_state.set(GameServerState::HomeScreen);
