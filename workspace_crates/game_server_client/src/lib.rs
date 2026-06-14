@@ -23,8 +23,9 @@ impl Plugin for GameServerClientPlugin {
         app.add_plugins(ReqwestPlugin::default());
         app.add_systems(
             OnEnter(GameServerState::Authentication),
-            (setup_authentication_ui, authenticate),
+            setup_authentication_ui ,
         );
+        app.add_systems(Update, (authenticate, check_authentication_state).run_if(in_state(GameServerState::Authentication)));
         app.insert_resource(SharedAuthenticationStepState(Arc::new(Mutex::new(
             AuthenticationStepState::GetServerNonce,
         ))));
@@ -69,6 +70,20 @@ fn setup_authentication_ui(mut commands: Commands, mut windows: Query<&mut Windo
 }
 
 fn setup_homescreen_ui() {}
+fn check_authentication_state(state: ResMut<SharedAuthenticationStepState>,
+   // mut commands: Commands,
+    mut next_state: ResMut<NextState<GameServerState>>,
+   ) {
+    let state = state.0.lock().unwrap();
+    
+    match &*state {
+        AuthenticationStepState::Complete { server_cookie: _ } => {
+            debug!("switching state to homescreen");
+            next_state.set(GameServerState::HomeScreen);
+        },
+        _ => {}
+    }
+   }
 
 #[derive(Debug, Clone, PartialEq)]
 enum AuthenticationStepState {
@@ -90,7 +105,10 @@ struct SharedAuthenticationStepState(Arc<Mutex<AuthenticationStepState>>);
 
 impl SharedAuthenticationStepState {
     fn update_state(&self, new_state: AuthenticationStepState) {
-        let Ok(mut guard) = self.0.lock() else { return };
+        let Ok(mut guard) = self.0.lock() else { 
+            debug!("update_state(): Could not get lock");
+            return;
+         };
         *guard = new_state;
     }
 }
@@ -154,6 +172,7 @@ fn authenticate(
     }
 }
 
+
 fn get_server_cookie(
     state: SharedAuthenticationStepState,
     mut client: BevyReqwest,
@@ -209,6 +228,7 @@ fn get_join_token(
     nonce: String,
     session_token: String,
 ) {
+    debug!("Entering get_join_token()");
     let url = auth_system_structs::public_api::get_full_url(
         auth_server_url.to_string(),
         auth_system_structs::public_api::PublicAPIAction::CreateJoinToken,
