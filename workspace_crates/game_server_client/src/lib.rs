@@ -1,8 +1,6 @@
 use auth_system_structs::public_api::{CreateJoinTokenRequest, CreateJoinTokenResponse};
 use bevy::prelude::*;
-use bevy_mod_reqwest::{
-    BevyReqwest, JsonResponse, ReqwestErrorEvent, ReqwestPlugin, ReqwestResponseEvent,
-};
+use bevy_mod_reqwest::{BevyReqwest, JsonResponse, ReqwestErrorEvent, ReqwestPlugin};
 use game_server_structs::{
     FinalLoginStepRequest, FinalLoginStepResponse, ServerNonceResponse, get_server_path,
 };
@@ -17,6 +15,9 @@ pub enum GameServerState {
     HomeScreen,
 }
 
+#[derive(Resource, Debug, Clone)]
+struct ServerCookie(Option<String>);
+
 impl Plugin for GameServerClientPlugin {
     fn build(&self, app: &mut App) {
         app.add_sub_state::<GameServerState>();
@@ -25,8 +26,7 @@ impl Plugin for GameServerClientPlugin {
             OnEnter(GameServerState::Authentication),
             (authenticate, setup_authentication_ui),
         );
-        app.insert_resource(AuthenticationStepState::GetServerNonce);
-
+        app.insert_resource(ServerCookie(None));
         app.add_systems(OnEnter(GameServerState::HomeScreen), setup_homescreen_ui);
     }
 }
@@ -66,38 +66,20 @@ fn setup_authentication_ui(mut commands: Commands, mut windows: Query<&mut Windo
         });
 }
 
-fn setup_homescreen_ui() {}
-fn check_authentication_state(
-    state: ResMut<AuthenticationStepState>,
-    // mut commands: Commands,
-    mut next_state: ResMut<NextState<GameServerState>>,
-) {
-    match &*state {
-        AuthenticationStepState::Complete { server_cookie: _ } => {
-            debug!("switching state to homescreen");
-            next_state.set(GameServerState::HomeScreen);
-        }
-        _ => {}
-    }
+fn setup_homescreen_ui(mut windows: Query<&mut Window>, cookie: Res<ServerCookie>) {
+    debug!("Entering setup_homescreen_ui");
+
+    let cookie = cookie.clone();
+    debug!("Server cookie: {:#?} ", cookie.0);
+
+     let launcher_title = "Homescreen";
+
+    if let Ok(mut window) = windows.single_mut() {
+        set_title(&mut *window, launcher_title);
+        window.resolution.set(480.0, 320.0);
+    };
 }
 
-#[derive(Resource, Debug, Clone, PartialEq)]
-enum AuthenticationStepState {
-    GetServerNonce,
-
-    GetJoinToken {
-        server_nonce: String,
-        session_token: String,
-    },
-    GetServerCookie {
-        join_token: String,
-        server_nonce: String,
-    },
-    Complete {
-        server_cookie: String,
-    },
-    Failed,
-}
 fn authenticate(app_config: Res<AppConfig>, session: Res<Session>, client: BevyReqwest) {
     debug!("Entered authenticate");
     get_nonce(
@@ -129,11 +111,12 @@ fn get_server_cookie(
         .send(req)
         .on_json_response(
             move |resp: On<JsonResponse<FinalLoginStepResponse>>,
-                  mut next_state: ResMut<NextState<GameServerState>>| {
+                  mut next_state: ResMut<NextState<GameServerState>>, mut server_cookie_resource: ResMut<ServerCookie>| {
                 let resp = resp.data.clone();
                 match resp {
                     FinalLoginStepResponse::Success(final_login_step_success) => {
                         debug!("FinalLoginStepResponse: success: {final_login_step_success:#?}");
+                        *server_cookie_resource = ServerCookie(Some(final_login_step_success.cookie_token.clone()));
                         next_state.set(GameServerState::HomeScreen);
                     }
                     FinalLoginStepResponse::Failure(final_login_step_error) => {
