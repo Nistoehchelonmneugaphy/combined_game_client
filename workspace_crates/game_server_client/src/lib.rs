@@ -3,7 +3,9 @@ use std::sync::{Arc, Mutex};
 use auth_system_structs::public_api::{CreateJoinTokenRequest, CreateJoinTokenResponse};
 use bevy::prelude::*;
 use bevy_mod_reqwest::{BevyReqwest, ReqwestErrorEvent, ReqwestPlugin, ReqwestResponseEvent};
-use game_server_structs::{FinalLoginStepRequest, FinalLoginStepResponse, ServerNonceResponse, get_server_path};
+use game_server_structs::{
+    FinalLoginStepRequest, FinalLoginStepResponse, ServerNonceResponse, get_server_path,
+};
 use shared::{AppConfig, AppState, Session, set_title};
 pub struct GameServerClientPlugin;
 
@@ -15,17 +17,19 @@ pub enum GameServerState {
     HomeScreen,
 }
 
-
-
 impl Plugin for GameServerClientPlugin {
     fn build(&self, app: &mut App) {
         app.add_sub_state::<GameServerState>();
         app.add_plugins(ReqwestPlugin::default());
         app.add_systems(
             OnEnter(GameServerState::Authentication),
-            setup_authentication_ui ,
+            setup_authentication_ui,
         );
-        app.add_systems(Update, (authenticate, check_authentication_state).run_if(in_state(GameServerState::Authentication)));
+        app.add_systems(
+            Update,
+            (authenticate, check_authentication_state)
+                .run_if(in_state(GameServerState::Authentication)),
+        );
         app.insert_resource(SharedAuthenticationStepState(Arc::new(Mutex::new(
             AuthenticationStepState::GetServerNonce,
         ))));
@@ -70,34 +74,39 @@ fn setup_authentication_ui(mut commands: Commands, mut windows: Query<&mut Windo
 }
 
 fn setup_homescreen_ui() {}
-fn check_authentication_state(state: ResMut<SharedAuthenticationStepState>,
-   // mut commands: Commands,
+fn check_authentication_state(
+    state: ResMut<SharedAuthenticationStepState>,
+    // mut commands: Commands,
     mut next_state: ResMut<NextState<GameServerState>>,
-   ) {
+) {
     let state = state.0.lock().unwrap();
-    
+
     match &*state {
         AuthenticationStepState::Complete { server_cookie: _ } => {
             debug!("switching state to homescreen");
             next_state.set(GameServerState::HomeScreen);
-        },
+        }
         _ => {}
     }
-   }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 enum AuthenticationStepState {
     GetServerNonce,
+    GettingServerNonce,
     GetJoinToken {
         server_nonce: String,
         session_token: String,
     },
+    GettingJoinToken,
     GetServerCookie {
         join_token: String,
         server_nonce: String,
     },
-    
-    Complete { server_cookie: String },
+    GettingServerCookie,
+    Complete {
+        server_cookie: String,
+    },
     Failed,
 }
 #[derive(Resource, Clone)]
@@ -105,10 +114,10 @@ struct SharedAuthenticationStepState(Arc<Mutex<AuthenticationStepState>>);
 
 impl SharedAuthenticationStepState {
     fn update_state(&self, new_state: AuthenticationStepState) {
-        let Ok(mut guard) = self.0.lock() else { 
+        let Ok(mut guard) = self.0.lock() else {
             debug!("update_state(): Could not get lock");
             return;
-         };
+        };
         *guard = new_state;
     }
 }
@@ -124,10 +133,13 @@ fn authenticate(
     let session = session.clone();
     let game_server_url = app_config.game_server_url;
     let auth_server_url = app_config.auth_server_url;
-    let Ok(guard) = auth_state.0.lock() else {
-        return;
+    let current_state = {
+        let Ok(guard) = auth_state.0.lock() else {
+            return;
+        };
+        (*guard).clone()
     };
-    match &*guard {
+    match current_state {
         AuthenticationStepState::GetServerNonce => {
             let state = auth_state.clone();
             get_nonce(
@@ -163,15 +175,17 @@ fn authenticate(
                 server_nonce.clone(),
             );
         }
-        AuthenticationStepState::Complete { server_cookie} => {
+        AuthenticationStepState::Complete { server_cookie } => {
             debug!("Authentication success, server_cookie: {server_cookie}");
-        },
+        }
         AuthenticationStepState::Failed => {
             debug!("Authentication failure");
-        },
+        }
+        _ => {
+            // transient "Getting" states
+        }
     }
 }
-
 
 fn get_server_cookie(
     state: SharedAuthenticationStepState,
@@ -180,6 +194,7 @@ fn get_server_cookie(
     join_token: String,
     server_nonce: String,
 ) {
+    state.update_state(AuthenticationStepState::GettingServerCookie);
     let url = get_server_path(
         &game_server_url,
         game_server_structs::ServerAction::FinalLoginStep,
@@ -208,12 +223,14 @@ fn get_server_cookie(
             match resp {
                 FinalLoginStepResponse::Success(final_login_step_success) => {
                     debug!("FinalLoginStepResponse: success: {final_login_step_success:#?}");
-                    state.update_state(AuthenticationStepState::Complete { server_cookie: final_login_step_success.cookie_token });
-                },
+                    state.update_state(AuthenticationStepState::Complete {
+                        server_cookie: final_login_step_success.cookie_token,
+                    });
+                }
                 FinalLoginStepResponse::Failure(final_login_step_error) => {
                     debug!("final_login_step_error: {final_login_step_error:#?}");
                     state.update_state(AuthenticationStepState::Failed);
-                },
+                }
             }
         }) // In case of request error, it can be reached using an observersystem
         .on_error(|trigger: On<ReqwestErrorEvent>| {
@@ -229,6 +246,7 @@ fn get_join_token(
     session_token: String,
 ) {
     debug!("Entering get_join_token()");
+    state.update_state(AuthenticationStepState::GettingJoinToken);
     let url = auth_system_structs::public_api::get_full_url(
         auth_server_url.to_string(),
         auth_system_structs::public_api::PublicAPIAction::CreateJoinToken,
@@ -272,12 +290,15 @@ fn get_join_token(
             debug!("bevy_mod_reqwest: req error: {e:?}");
         });
 }
+
 fn get_nonce(
     state: SharedAuthenticationStepState,
     mut client: BevyReqwest,
     game_server_url: String,
     session_token: String,
 ) {
+    debug!("Entered get_nonce");
+    state.update_state(AuthenticationStepState::GettingServerNonce);
     // step 1: get nonce from server
     let url = get_server_path(
         &game_server_url,
