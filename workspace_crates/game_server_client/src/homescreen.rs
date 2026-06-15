@@ -3,11 +3,12 @@ use futures_util::{SinkExt, StreamExt, stream::SplitSink};
 use game_server_structs::websocket_communication::{
     ClientMessage, ClientMessageContent, ServerMessage,
 };
+use http::HeaderValue;
 use shared::{AppConfig, set_title};
 use tokio::{net::TcpStream, sync::mpsc};
 use tokio_tungstenite::{
     MaybeTlsStream, WebSocketStream,
-    tungstenite::{self, Message},
+    tungstenite::{self, Message, client::IntoClientRequest},
 };
 
 use crate::ServerCookie;
@@ -18,15 +19,25 @@ pub struct GameServerConnection {
     from_server: mpsc::UnboundedReceiver<ServerMessage>,
 }
 
-pub fn setup_connection(app_config: Res<AppConfig>, mut commands: Commands) {
+pub fn setup_connection(
+    app_config: Res<AppConfig>,
+    mut commands: Commands,
+    cookie: Res<ServerCookie>,
+) {
     let (to_server_tx, to_server_rx) = mpsc::unbounded_channel::<ClientMessage>();
     let (from_server_tx, from_server_rx) = mpsc::unbounded_channel::<ServerMessage>();
     let app_config = app_config.clone();
+    let cookie = cookie.clone();
+    let Some(cookie) = cookie.0 else {
+        debug!("No cookie");
+        return;
+    };
     std::thread::spawn(move || {
         let rt = tokio::runtime::Runtime::new().expect("Failed to start Tokio runtime");
         rt.block_on(async move {
             ws_thread(
                 app_config.clone().ws_game_server_url,
+                cookie.clone(),
                 to_server_rx,
                 from_server_tx,
             )
@@ -40,10 +51,15 @@ pub fn setup_connection(app_config: Res<AppConfig>, mut commands: Commands) {
 }
 async fn ws_thread(
     url: String,
+    cookie: String,
     mut to_server_rx: mpsc::UnboundedReceiver<ClientMessage>,
     from_server_tx: mpsc::UnboundedSender<ServerMessage>,
 ) {
-    let (ws_stream, _) = tokio_tungstenite::connect_async(url)
+    let mut request = url.clone().into_client_request().unwrap();
+    let cookie_value = HeaderValue::from_str(&cookie).unwrap();
+    request.headers_mut().insert("cookie", cookie_value);
+
+    let (ws_stream, _) = tokio_tungstenite::connect_async(request)
         .await
         .expect("Failed to connect to ws server");
     let (mut ws_writer, mut ws_reader) = ws_stream.split();

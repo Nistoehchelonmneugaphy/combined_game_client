@@ -22,3 +22,5 @@ auth_system_structs = { workspace = true }
 game_server_structs = { workspace = true }
 bevy_mod_reqwest = { workspace = true }
 futures-util = "0.3.32"
+http = "1.4.2"
+url = "2.5.8"

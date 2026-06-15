@@ -2718,10 +2718,12 @@ dependencies = [
  "ehttp",
  "futures-util",
  "game_server_structs",
+ "http",
  "serde_json",
  "shared",
  "tokio",
  "tokio-tungstenite",
+ "url",
  "web",
  "web_mobile_input",
 ]
