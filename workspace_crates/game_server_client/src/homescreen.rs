@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use futures_util::{SinkExt, StreamExt, stream::SplitSink};
-use game_server_structs::websocket_communication::{ClientMessage, ServerMessage};
+use game_server_structs::websocket_communication::{
+    ClientMessage, ClientMessageContent, ServerMessage,
+};
 use shared::{AppConfig, set_title};
 use tokio::{net::TcpStream, sync::mpsc};
 use tokio_tungstenite::{
@@ -17,8 +19,8 @@ pub struct GameServerConnection {
 }
 
 pub fn setup_connection(app_config: Res<AppConfig>, mut commands: Commands) {
-    let (to_server_tx, mut to_server_rx) = mpsc::unbounded_channel::<ClientMessage>();
-    let (from_server_tx, mut from_server_rx) = mpsc::unbounded_channel::<ServerMessage>();
+    let (to_server_tx, to_server_rx) = mpsc::unbounded_channel::<ClientMessage>();
+    let (from_server_tx, from_server_rx) = mpsc::unbounded_channel::<ServerMessage>();
     let app_config = app_config.clone();
     std::thread::spawn(move || {
         let rt = tokio::runtime::Runtime::new().expect("Failed to start Tokio runtime");
@@ -76,9 +78,21 @@ async fn send_ws_message(
     let text = serde_json::to_string(&msg).unwrap();
     ws_writer.send(Message::Text(text.into())).await.unwrap();
 }
-pub fn setup_homescreen_ui(mut windows: Query<&mut Window>, cookie: Res<ServerCookie>) {
+pub fn setup_homescreen_ui(
+    mut windows: Query<&mut Window>,
+    cookie: Res<ServerCookie>,
+    mut events: MessageWriter<ClientMessage>,
+) {
     debug!("Entering setup_homescreen_ui");
-
+    if let Some(cookie) = cookie.clone().0 {
+        debug!("Send test msg");
+        events.write(ClientMessage {
+            cookie,
+            content: ClientMessageContent::SendGlobalChatMessage {
+                content: "Hey bro and sis".to_string(),
+            },
+        });
+    }
     let cookie = cookie.clone();
     debug!("Server cookie: {:#?} ", cookie.0);
 
@@ -101,7 +115,10 @@ pub fn receive_from_server(
 }
 
 // any bevy system can send by writing a ToServer event
-pub fn send_to_server(connection: Res<GameServerConnection>, mut events: MessageReader<ClientMessage>) {
+pub fn send_to_server(
+    connection: Res<GameServerConnection>,
+    mut events: MessageReader<ClientMessage>,
+) {
     for msg in events.read() {
         connection.to_server.send(msg.clone()).ok();
     }
