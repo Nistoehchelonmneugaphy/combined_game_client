@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use bevy::asset::AssetLoader;
+use bevy::prelude::*;
 use shared::{AppConfig, AppConfigAsset, AppConfigHandle, AppState};
 
 pub struct StartupPlugin;
@@ -26,8 +26,16 @@ fn check_loaded(
 ) {
     if let Some(config) = assets.get(&handle.0) {
         debug!("Retrieved assets/config.json: {:#?}", config);
-        let AppConfigAsset { auth_server_url, game_server_url } = config;
-        let app_config = AppConfig { auth_server_url: auth_server_url.to_string(), game_server_url: game_server_url.to_string() };
+        let AppConfigAsset {
+            auth_server_url,
+            game_server_url,
+            ws_game_server_url,
+        } = config;
+        let app_config = AppConfig {
+            auth_server_url: auth_server_url.to_string(),
+            game_server_url: game_server_url.to_string(),
+            ws_game_server_url: ws_game_server_url.to_string(),
+        };
         commands.insert_resource(app_config);
         debug!("Switching from AppState::Startup to AppState::Launcher");
         next_state.set(AppState::Launcher);
@@ -35,7 +43,7 @@ fn check_loaded(
 }
 
 // Asset loader
-use bevy::asset::{io::Reader};
+use bevy::asset::io::Reader;
 
 #[derive(Default, TypePath)]
 struct AppConfigJsonLoader;

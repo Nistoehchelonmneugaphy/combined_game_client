@@ -14,6 +14,7 @@ pub enum AppState {
 pub struct AppConfig {
     pub auth_server_url: String,
     pub game_server_url: String,
+    pub ws_game_server_url: String,
 }
 
 #[derive(Resource, Clone, Debug)]
@@ -26,6 +27,7 @@ pub struct Session {
 pub struct AppConfigAsset {
     pub auth_server_url: String,
     pub game_server_url: String,
+    pub ws_game_server_url: String,
 }
 
 #[derive(Resource)]

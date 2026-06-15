@@ -3,9 +3,13 @@ use bevy::prelude::*;
 use bevy_mod_reqwest::{BevyReqwest, JsonResponse, ReqwestErrorEvent, ReqwestPlugin};
 use game_server_structs::{
     FinalLoginStepRequest, FinalLoginStepResponse, ServerNonceResponse, get_server_path,
+    websocket_communication::{ClientMessage, ServerMessage},
 };
 use shared::{AppConfig, AppState, Session, set_title};
+
+use crate::homescreen::{receive_from_server, send_to_server};
 pub struct GameServerClientPlugin;
+mod homescreen;
 
 #[derive(SubStates, Default, Clone, Eq, PartialEq, Hash, Debug)]
 #[source(AppState = AppState::GameServer)]
@@ -27,7 +31,22 @@ impl Plugin for GameServerClientPlugin {
             (authenticate, setup_authentication_ui),
         );
         app.insert_resource(ServerCookie(None));
-        app.add_systems(OnEnter(GameServerState::HomeScreen), setup_homescreen_ui);
+        app.add_systems(
+            OnEnter(GameServerState::HomeScreen),
+            (
+                homescreen::setup_connection,
+                homescreen::setup_homescreen_ui,
+            ),
+        );
+        app.add_message::<ClientMessage>();
+        app.add_message::<ServerMessage>();
+        app.clear_messages_on_exit::<ClientMessage>(GameServerState::HomeScreen);
+        app.clear_messages_on_exit::<ServerMessage>(GameServerState::HomeScreen);
+
+        app.add_systems(
+            Update,
+            (receive_from_server, send_to_server).run_if(in_state(GameServerState::HomeScreen)),
+        );
     }
 }
 
@@ -64,20 +83,6 @@ fn setup_authentication_ui(mut commands: Commands, mut windows: Query<&mut Windo
             ))
             .with_child(Text::new("Authenticating to the server..."));
         });
-}
-
-fn setup_homescreen_ui(mut windows: Query<&mut Window>, cookie: Res<ServerCookie>) {
-    debug!("Entering setup_homescreen_ui");
-
-    let cookie = cookie.clone();
-    debug!("Server cookie: {:#?} ", cookie.0);
-
-    let launcher_title = "Homescreen";
-
-    if let Ok(mut window) = windows.single_mut() {
-        set_title(&mut *window, launcher_title);
-        window.resolution.set(480.0, 320.0);
-    };
 }
 
 fn authenticate(app_config: Res<AppConfig>, session: Res<Session>, client: BevyReqwest) {

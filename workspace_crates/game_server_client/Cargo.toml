@@ -12,6 +12,8 @@ web = { workspace = true }
 android_mobile_input = { workspace = true }
 
 [dependencies]
+tokio-tungstenite = "0.29.0"
+tokio = { workspace = true }
 bevy = { workspace = true }
 serde_json = { workspace = true }
 ehttp = { workspace = true }
@@ -19,3 +21,4 @@ shared = { workspace = true }
 auth_system_structs = { workspace = true }
 game_server_structs = { workspace = true }
 bevy_mod_reqwest = { workspace = true }
+futures-util = "0.3.32"
