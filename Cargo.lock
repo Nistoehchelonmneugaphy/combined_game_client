@@ -2731,7 +2731,7 @@ dependencies = [
 [[package]]
 name = "game_server_structs"
 version = "0.1.0"
-source = "git+ssh://git@github.com/Aeroel/game_server.git#f1100ad3018c27344b709992dc7c567ef3be73ec"
+source = "git+ssh://git@github.com/Aeroel/game_server.git#e8be90b19923ab5fa53e2791b20dd113a43e4b9c"
 dependencies = [
  "auth_system_structs",
  "bevy_ecs",

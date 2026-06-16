@@ -69,7 +69,8 @@ async fn ws_thread(
                 match receive_ws_message(from_server_tx.clone(), msg).await {
                     BreakOrContinue::Break => break,
                     _ => {},
-            },
+                 }
+            }
             Some(msg) = to_server_rx.recv() => send_ws_message(&mut ws_writer, msg).await,
         }
     }
