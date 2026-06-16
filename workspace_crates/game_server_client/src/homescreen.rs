@@ -68,7 +68,9 @@ async fn ws_thread(
             msg = ws_reader.next() => {
                 match receive_ws_message(from_server_tx.clone(), msg).await {
                     BreakOrContinue::Break => break,
-                    _ => {},
+                    BreakOrContinue::Continue => {
+                        continue
+                    },
                  }
             }
             Some(msg) = to_server_rx.recv() => send_ws_message(&mut ws_writer, msg).await,

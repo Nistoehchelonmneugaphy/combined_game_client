@@ -113,6 +113,7 @@ pub fn receive_chat_messages(
             user_id: _,
         } = &msg
         {
+            debug!("Received message {username}: {content}");
             history
                 .messages
                 .push_back(format!("{}: {}", username, content));
