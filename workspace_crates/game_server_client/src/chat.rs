@@ -185,7 +185,7 @@ pub fn handle_text_input(
     chat_message_field_interaction_query: Query<&Interaction, With<ChatMessageInput>>,
     #[cfg(target_os = "android")] anywhere_else_interaction_query: Query<
         &Interaction,
-        (Without<UsernameInput>, Without<PasswordInput>),
+        Without<ChatMessageInput>,
     >,
     mut chat_message_text: Query<&mut Text, With<ChatMessageText> >,
 ) {
@@ -209,7 +209,7 @@ pub fn handle_text_input(
     #[cfg(target_os = "android")]
     {
         if chat_message_pressed {
-            android_mobile_input::show_keyboard(&form.username, "Chat message");
+            android_mobile_input::show_keyboard(&form.chat_message, "Chat message");
         } else if anywhere_else_pressed {
             android_mobile_input::hide_keyboard();
         }
