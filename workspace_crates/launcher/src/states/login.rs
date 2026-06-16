@@ -1,12 +1,16 @@
-use std::{sync::{Arc, Mutex}, time::Duration};
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
-use auth_system_structs::public_api::{LoginErrorKind, LoginRequest, LoginResponse, PublicAPIAction::{self}};
+use auth_system_structs::public_api::{
+    LoginErrorKind, LoginRequest, LoginResponse,
+    PublicAPIAction::{self},
+};
 use bevy::prelude::*;
 use shared::{AppConfig, Session, set_title};
 
-use crate::structs::{LauncherState};
-
-
+use crate::structs::LauncherState;
 
 #[derive(Resource, Default)]
 pub struct LoginForm {
@@ -45,7 +49,6 @@ pub struct ErrorLabel;
 #[derive(Component)]
 pub struct ConnectButton;
 
-
 #[derive(Resource)]
 pub struct CursorBlink(pub Timer);
 impl Default for CursorBlink {
@@ -65,20 +68,19 @@ impl Default for LoginResultQueue {
     }
 }
 
-
-pub fn add_launcher_login_systems(app: &mut App){
+pub fn add_launcher_login_systems(app: &mut App) {
     app.add_systems(
-            Update,
-            (
-                handle_text_input,
-                blink_cursor,
-                handle_login_button,
-                poll_login_response,
-                handle_server_connect,
-            )
-                .chain()
-                .run_if(in_state(LauncherState::Login)),
-        );
+        Update,
+        (
+            handle_text_input,
+            blink_cursor,
+            handle_login_button,
+            poll_login_response,
+            handle_server_connect,
+        )
+            .chain()
+            .run_if(in_state(LauncherState::Login)),
+    );
 }
 pub fn setup_launcher_login_ui(
     mut commands: Commands,
@@ -152,9 +154,7 @@ pub fn setup_launcher_login_ui(
                 TextColor(Color::srgb(1.0, 0.3, 0.3)),
             ));
         });
-
-    }
-
+}
 
 pub fn spawn_text_field<M: Bundle, T: Bundle, C: Bundle>(
     parent: &mut ChildSpawnerCommands,
@@ -206,8 +206,7 @@ pub fn spawn_text_field<M: Bundle, T: Bundle, C: Bundle>(
                 ));
             });
         });
-use bevy::prelude::*;}
-
+}
 
 pub fn teardown_launcher_login_ui(mut commands: Commands) {
     // I assume that the DespawnOnExit takes care of all spawn'ed entities.
@@ -217,13 +216,15 @@ pub fn teardown_launcher_login_ui(mut commands: Commands) {
     commands.remove_resource::<LoginResultQueue>();
 }
 
-
 pub fn handle_text_input(
     mut form: ResMut<LoginForm>,
     mut evr: MessageReader<bevy::input::keyboard::KeyboardInput>,
     username_field_interaction_query: Query<&Interaction, With<UsernameInput>>,
     password_field_interaction_query: Query<&Interaction, With<PasswordInput>>,
-    #[cfg(target_os = "android")] anywhere_else_interaction_query: Query<&Interaction, (Without<UsernameInput>, Without<PasswordInput>)>,
+    #[cfg(target_os = "android")] anywhere_else_interaction_query: Query<
+        &Interaction,
+        (Without<UsernameInput>, Without<PasswordInput>),
+    >,
     mut username_text: Query<&mut Text, (With<UsernameText>, Without<PasswordText>)>,
     mut password_text: Query<&mut Text, (With<PasswordText>, Without<UsernameText>)>,
 ) {
@@ -233,7 +234,8 @@ pub fn handle_text_input(
     let password_pressed = password_field_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
-    #[cfg(target_os = "android")] let anywhere_else_pressed = anywhere_else_interaction_query
+    #[cfg(target_os = "android")]
+    let anywhere_else_pressed = anywhere_else_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
 
@@ -296,8 +298,8 @@ pub fn handle_text_input(
     if let Ok(mut text) = password_text.single_mut() {
         text.0 = "*".repeat(form.password.len());
     }
-use bevy::prelude::*;}
-
+    use bevy::prelude::*;
+}
 
 pub fn blink_cursor(
     time: Res<Time>,
@@ -341,8 +343,8 @@ pub fn blink_cursor(
             _ => Visibility::Hidden,
         };
     }
-use bevy::prelude::*;}
-
+    use bevy::prelude::*;
+}
 
 pub fn handle_login_button(
     asset_server: Res<AssetServer>,
@@ -378,8 +380,8 @@ pub fn handle_login_button(
             PlaybackSettings::DESPAWN,
         ));
     }
-use bevy::prelude::*;}
-
+    use bevy::prelude::*;
+}
 
 pub fn login_request(
     queue: &mut ResMut<LoginResultQueue>,
@@ -397,7 +399,10 @@ pub fn login_request(
     let queue_clone = queue.clone();
 
     let request = ehttp::Request::post(
-        auth_system_structs::public_api::get_full_url(auth_server_url.into(), PublicAPIAction::Login),
+        auth_system_structs::public_api::get_full_url(
+            auth_server_url.into(),
+            PublicAPIAction::Login,
+        ),
         body_vec,
     )
     .with_timeout(Some(Duration::from_secs(7)));
@@ -411,7 +416,11 @@ pub fn login_request(
             Ok(r) => {
                 let Ok(resp) = serde_json::from_slice::<LoginResponse>(&r.bytes) else {
                     error!("Could not shape response into LoginResponse.");
-                    error!("Response bytes: {:#?}, response headers: {:#?}",String::from_utf8_lossy(&r.bytes), &r.headers);
+                    error!(
+                        "Response bytes: {:#?}, response headers: {:#?}",
+                        String::from_utf8_lossy(&r.bytes),
+                        &r.headers
+                    );
                     queue.push(Err(CouldNotContactAuthServer));
                     return;
                 };
@@ -424,8 +433,8 @@ pub fn login_request(
             }
         }
     });
-use bevy::prelude::*;}
-
+    use bevy::prelude::*;
+}
 
 pub fn poll_login_response(
     queue: ResMut<LoginResultQueue>,
@@ -468,8 +477,8 @@ pub fn poll_login_response(
             },
         }
     }
-use bevy::prelude::*;}
-
+    use bevy::prelude::*;
+}
 
 pub fn handle_server_connect(
     interaction_q: Query<&Interaction, (Changed<Interaction>, With<ConnectButton>)>,

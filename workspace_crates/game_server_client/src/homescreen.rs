@@ -11,7 +11,7 @@ use tokio_tungstenite::{
     tungstenite::{self, Message, client::IntoClientRequest},
 };
 
-use crate::ServerCookie;
+use crate::{ServerCookie, chat};
 
 #[derive(Resource)]
 pub struct GameServerConnection {
@@ -108,6 +108,7 @@ pub fn setup_homescreen_ui(
     mut windows: Query<&mut Window>,
     cookie: Res<ServerCookie>,
     mut events: MessageWriter<ClientMessage>,
+    mut commands: Commands,
 ) {
     debug!("Entering setup_homescreen_ui");
     if let Some(cookie) = cookie.clone().0 {
@@ -128,6 +129,8 @@ pub fn setup_homescreen_ui(
         set_title(&mut *window, launcher_title);
         window.resolution.set(480.0, 320.0);
     };
+
+    chat::spawn_chat_history_ui(commands);
 }
 
 pub fn receive_from_server(

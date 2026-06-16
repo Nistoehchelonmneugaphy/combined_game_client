@@ -7,9 +7,10 @@ use game_server_structs::{
 };
 use shared::{AppConfig, AppState, Session, set_title};
 
-use crate::homescreen::{receive_from_server, send_to_server};
+use crate::{chat::receive_chat_messages, homescreen::{receive_from_server, send_to_server}};
 pub struct GameServerClientPlugin;
 mod homescreen;
+mod chat;
 
 #[derive(SubStates, Default, Clone, Eq, PartialEq, Hash, Debug)]
 #[source(AppState = AppState::GameServer)]
@@ -45,7 +46,7 @@ impl Plugin for GameServerClientPlugin {
 
         app.add_systems(
             Update,
-            (receive_from_server, send_to_server).run_if(in_state(GameServerState::HomeScreen)),
+            (receive_from_server, send_to_server, receive_chat_messages).run_if(in_state(GameServerState::HomeScreen)),
         );
     }
 }
