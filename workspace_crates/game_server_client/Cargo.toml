@@ -12,7 +12,7 @@ web = { workspace = true }
 android_mobile_input = { workspace = true }
 
 [dependencies]
-tokio-tungstenite = "0.29.0"
+tokio-tungstenite = { version = "0.29.0", features = [ "rustls-tls-native-roots" ] }
 tokio = { workspace = true }
 bevy = { workspace = true }
 serde_json = { workspace = true }
