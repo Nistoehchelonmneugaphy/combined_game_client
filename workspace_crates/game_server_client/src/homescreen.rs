@@ -65,15 +65,23 @@ async fn ws_thread(
     let (mut ws_writer, mut ws_reader) = ws_stream.split();
     loop {
         tokio::select! {
-            msg = ws_reader.next() => receive_ws_message(from_server_tx.clone(), msg).await,
+            msg = ws_reader.next() => {
+                match receive_ws_message(from_server_tx.clone(), msg).await {
+                    BreakOrContinue::Break => break,
+                    _ => {},
+            },
             Some(msg) = to_server_rx.recv() => send_ws_message(&mut ws_writer, msg).await,
         }
     }
 }
+enum BreakOrContinue {
+    Break,
+    Continue,
+}
 async fn receive_ws_message(
     from_server_tx: mpsc::UnboundedSender<ServerMessage>,
     msg: Option<Result<tungstenite::protocol::Message, tungstenite::error::Error>>,
-) {
+) -> BreakOrContinue {
     match msg {
         Some(Ok(tungstenite::protocol::Message::Text(text))) => {
             if let Ok(parsed) = serde_json::from_str::<ServerMessage>(&text) {
@@ -82,10 +90,11 @@ async fn receive_ws_message(
         }
         Some(Ok(tungstenite::protocol::Message::Close(_))) | None => {
             warn!("Server closed connection");
-            return;
+            return BreakOrContinue::Break;
         }
         _ => {}
     }
+    BreakOrContinue::Continue
 }
 async fn send_ws_message(
     ws_writer: &mut SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>,
