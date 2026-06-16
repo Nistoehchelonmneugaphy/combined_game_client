@@ -47,6 +47,7 @@ pub enum ChatMessageFormField {
 }
 
 pub fn spawn_chat_history_ui(mut commands: Commands) {
+    commands.init_resource::<ChatMessageForm>();
     commands.insert_resource(ChatHistory::default());
     // Spawn a root node, then 5 text slots as children
     commands
@@ -144,27 +145,12 @@ pub fn receive_chat_messages(
     }
 }
 
-// pub fn setup_homescreen_ui(
-//     mut windows: Query<&mut Window>,
-//     cookie: Res<ServerCookie>,
-//     mut events: MessageWriter<ClientMessage>,
-//     mut commands: Commands,
-// ) {
-//     debug!("Entering setup_homescreen_ui");
-//     if let Some(cookie) = cookie.clone().0 {
-//         debug!("Send test msg");
-//         events.write(ClientMessage {
-//             cookie,
-//             content: ClientMessageContent::SendGlobalChatMessage {
-//                 content: "Hey bro and sis".to_string(),
-//             },
-//         });
-//     }
 pub fn handle_send_chat_message_button(
+    mut form: ResMut<ChatMessageForm>,
     cookie: Res<ServerCookie>,
     mut events: MessageWriter<ClientMessage>,
     interaction_q: Query<&Interaction, (Changed<Interaction>, With<SendChatMessageButton>)>,
-    form: Res<ChatMessageForm>,
+    mut chat_message_text: Query<&mut Text, With<ChatMessageText> >,
 ) {
     for interaction in &interaction_q {
         if *interaction != Interaction::Pressed {
@@ -180,11 +166,15 @@ pub fn handle_send_chat_message_button(
 
         let message  = form.chat_message.clone() ;
         if let Some(cookie) = cookie.clone().0 {
-            debug!("Sen msg");
+            debug!("Send msg");
             events.write(ClientMessage {
                 cookie,
                 content: ClientMessageContent::SendGlobalChatMessage { content: message },
             });
+               form.chat_message = "".to_string();
+               if let Ok(mut text) = chat_message_text.single_mut() {
+                text.0 = form.chat_message.clone();
+                }
         }
     }
 }
