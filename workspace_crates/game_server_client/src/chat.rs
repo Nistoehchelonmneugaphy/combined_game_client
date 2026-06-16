@@ -128,18 +128,9 @@ pub fn receive_chat_messages(
         return;
     }
 
-    // Re-render all slots from current history
-    // Pad from the front so newest message is always at slot 4
+   // Just set all to newest
     for (slot, mut text, mut visibility) in &mut slots {
-        let history_index = slot.0 + 5 - history.messages.len(); // may underflow
-        if slot.0 + 5 < history.messages.len() || history_index >= 5 {
-            // slot is before our oldest message — hide it
-            *visibility = Visibility::Hidden;
-            text.0 = "".to_string();
-        } else if let Some(msg) = history
-            .messages
-            .get(slot.0.wrapping_sub(5 - history.messages.len()))
-        {
+        if let Some(msg) = history.messages.get(history.messages.len() - 1) {
             text.0 = msg.clone();
             *visibility = Visibility::Inherited;
         }
@@ -151,7 +142,7 @@ pub fn handle_send_chat_message_button(
     cookie: Res<ServerCookie>,
     mut events: MessageWriter<ClientMessage>,
     interaction_q: Query<&Interaction, (Changed<Interaction>, With<SendChatMessageButton>)>,
-    mut chat_message_text: Query<&mut Text, With<ChatMessageText> >,
+    mut chat_message_text: Query<&mut Text, With<ChatMessageText>>,
 ) {
     for interaction in &interaction_q {
         if *interaction != Interaction::Pressed {
@@ -165,17 +156,17 @@ pub fn handle_send_chat_message_button(
             }
         }
 
-        let message  = form.chat_message.clone() ;
+        let message = form.chat_message.clone();
         if let Some(cookie) = cookie.clone().0 {
             debug!("Send msg");
             events.write(ClientMessage {
                 cookie,
                 content: ClientMessageContent::SendGlobalChatMessage { content: message },
             });
-               form.chat_message = "".to_string();
-               if let Ok(mut text) = chat_message_text.single_mut() {
+            form.chat_message = "".to_string();
+            if let Ok(mut text) = chat_message_text.single_mut() {
                 text.0 = form.chat_message.clone();
-                }
+            }
         }
     }
 }
@@ -188,7 +179,7 @@ pub fn handle_text_input(
         &Interaction,
         Without<ChatMessageInput>,
     >,
-    mut chat_message_text: Query<&mut Text, With<ChatMessageText> >,
+    mut chat_message_text: Query<&mut Text, With<ChatMessageText>>,
 ) {
     let chat_message_pressed = chat_message_field_interaction_query
         .single()
