@@ -8,7 +8,7 @@ use auth_system_structs::public_api::{
     PublicAPIAction::{self},
 };
 use bevy::prelude::*;
-use shared::{AppConfig, Session, set_title};
+use shared::{AppConfig, CursorBlink, Session, set_title, spawn_text_field};
 
 use crate::structs::LauncherState;
 
@@ -27,35 +27,33 @@ pub enum FormField {
 
 #[derive(Component)]
 pub struct UsernameInputFieldCursor;
+
 #[derive(Component)]
 pub struct PasswordInputFieldCursor;
 
 #[derive(Component)]
-pub struct UsernameInput;
-#[derive(Component)]
 pub struct PasswordInput;
+
+#[derive(Component)]
+pub struct PasswordText;
+
+#[derive(Component)]
+pub struct UsernameInput;
+
 
 #[derive(Component)]
 pub struct UsernameText;
 
-#[derive(Component)]
-pub struct PasswordText;
 
 #[derive(Component)]
 pub struct LoginButton;
 
 #[derive(Component)]
 pub struct ErrorLabel;
+
 #[derive(Component)]
 pub struct ConnectButton;
 
-#[derive(Resource)]
-pub struct CursorBlink(pub Timer);
-impl Default for CursorBlink {
-    fn default() -> Self {
-        Self(Timer::from_seconds(0.5, TimerMode::Repeating))
-    }
-}
 
 pub struct CouldNotContactAuthServer;
 
@@ -119,11 +117,13 @@ pub fn setup_launcher_login_ui(
         ))
         .with_children(|p| {
             spawn_text_field(
+                
                 p,
                 "Username",
                 UsernameInput,
                 UsernameText,
                 UsernameInputFieldCursor,
+                LauncherState::Login,
             );
             spawn_text_field(
                 p,
@@ -131,6 +131,7 @@ pub fn setup_launcher_login_ui(
                 PasswordInput,
                 PasswordText,
                 PasswordInputFieldCursor,
+                LauncherState::Login,
             );
 
             // Login button
@@ -153,58 +154,6 @@ pub fn setup_launcher_login_ui(
                 Text::new(""),
                 TextColor(Color::srgb(1.0, 0.3, 0.3)),
             ));
-        });
-}
-
-pub fn spawn_text_field<M: Bundle, T: Bundle, C: Bundle>(
-    parent: &mut ChildSpawnerCommands,
-    label: &str,
-    container_marker: M,
-    text_marker: T,
-    cursor_marker: C,
-) {
-    parent
-        .spawn((
-            DespawnOnExit(LauncherState::Login),
-            Node {
-                flex_direction: FlexDirection::Column,
-                align_items: AlignItems::Center,
-                row_gap: Val::Px(4.0),
-                ..default()
-            },
-        ))
-        .with_children(|col| {
-            col.spawn(Text::new(label));
-
-            col.spawn((
-                container_marker,
-                Button,
-                Node {
-                    width: Val::Px(280.0),
-                    height: Val::Px(36.0),
-                    flex_direction: FlexDirection::Row,
-                    align_items: AlignItems::Center,
-                    border: UiRect::all(Val::Px(1.0)),
-                    padding: UiRect::axes(Val::Px(8.0), Val::Px(4.0)),
-                    ..default()
-                },
-                BorderColor::all(Color::srgb(0.5, 0.5, 0.5)),
-                BackgroundColor(Color::srgb(0.1, 0.1, 0.1)),
-            ))
-            .with_children(|row| {
-                row.spawn((text_marker, Text::new("")));
-                // Cursor: thin rectangle
-                row.spawn((
-                    cursor_marker,
-                    Node {
-                        width: Val::Px(2.0),
-                        height: Val::Px(18.0),
-                        ..default()
-                    },
-                    BackgroundColor(Color::WHITE),
-                    Visibility::Hidden, // starts hidden
-                ));
-            });
         });
 }
 
@@ -343,7 +292,6 @@ pub fn blink_cursor(
             _ => Visibility::Hidden,
         };
     }
-    use bevy::prelude::*;
 }
 
 pub fn handle_login_button(
@@ -380,7 +328,6 @@ pub fn handle_login_button(
             PlaybackSettings::DESPAWN,
         ));
     }
-    use bevy::prelude::*;
 }
 
 pub fn login_request(

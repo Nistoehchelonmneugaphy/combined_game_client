@@ -65,3 +65,66 @@ fn set_browser_title(title: &str) {
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
 fn set_title_impl(_window: &mut Window, _title: &str) {}
+
+
+
+pub fn spawn_text_field<M: Bundle, T: Bundle, C: Bundle, S: States>(
+    parent: &mut ChildSpawnerCommands,
+    label: &str,
+    container_marker: M,
+    text_marker: T,
+    cursor_marker: C,
+    state_despawn: S,
+) {
+    parent
+        .spawn((
+            DespawnOnExit(state_despawn),
+            Node {
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                row_gap: Val::Px(4.0),
+                ..default()
+            },
+        ))
+        .with_children(|col| {
+            col.spawn(Text::new(label));
+
+            col.spawn((
+                container_marker,
+                Button,
+                Node {
+                    width: Val::Px(280.0),
+                    height: Val::Px(36.0),
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::Center,
+                    border: UiRect::all(Val::Px(1.0)),
+                    padding: UiRect::axes(Val::Px(8.0), Val::Px(4.0)),
+                    ..default()
+                },
+                BorderColor::all(Color::srgb(0.5, 0.5, 0.5)),
+                BackgroundColor(Color::srgb(0.1, 0.1, 0.1)),
+            ))
+            .with_children(|row| {
+                row.spawn((text_marker, Text::new("")));
+                // Cursor: thin rectangle
+                row.spawn((
+                    cursor_marker,
+                    Node {
+                        width: Val::Px(2.0),
+                        height: Val::Px(18.0),
+                        ..default()
+                    },
+                    BackgroundColor(Color::WHITE),
+                    Visibility::Hidden, // starts hidden
+                ));
+            });
+        });
+}
+
+#[derive(Resource)]
+pub struct CursorBlink(pub Timer);
+impl Default for CursorBlink {
+    fn default() -> Self {
+        Self(Timer::from_seconds(0.5, TimerMode::Repeating))
+    }
+}

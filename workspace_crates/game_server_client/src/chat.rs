@@ -1,9 +1,23 @@
 use std::collections::VecDeque;
 
 use bevy::prelude::*;
-use game_server_structs::websocket_communication::ServerMessage;
+use game_server_structs::websocket_communication::{
+    ClientMessage, ClientMessageContent, ServerMessage,
+};
+use shared::spawn_text_field;
 
-use crate::GameServerState;
+pub struct ChatPlugin;
+impl Plugin for ChatPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (handle_text_input, handle_send_chat_message_button)
+                .chain()
+                .run_if(in_state(GameServerState::HomeScreen)),
+        );
+    }
+}
+use crate::{GameServerState, ServerCookie};
 
 #[derive(Component)]
 pub struct ChatMessageSlot(pub usize); // 0 = oldest, 4 = newest
@@ -12,8 +26,25 @@ pub struct ChatMessageSlot(pub usize); // 0 = oldest, 4 = newest
 pub struct ChatHistory {
     pub messages: VecDeque<String>, // max 5
 }
+#[derive(Component)]
+pub struct ChatMessageText;
+#[derive(Component)]
+pub struct ChatMessageInput;
+#[derive(Component)]
+pub struct ChatMessageInputFieldCursor;
+#[derive(Component)]
+pub struct SendChatMessageButton;
 
-
+#[derive(Resource, Default)]
+pub struct ChatMessageForm {
+    pub chat_message: String,
+    pub focused: ChatMessageFormField,
+}
+#[derive(Default, PartialEq)]
+pub enum ChatMessageFormField {
+    #[default]
+    ChatMessage,
+}
 
 pub fn spawn_chat_history_ui(mut commands: Commands) {
     commands.insert_resource(ChatHistory::default());
@@ -30,9 +61,9 @@ pub fn spawn_chat_history_ui(mut commands: Commands) {
                 ..default()
             },
         ))
-        .with_children(|parent| {
+        .with_children(|p| {
             for i in 0..5 {
-                parent.spawn((
+                p.spawn((
                     Text::new("msg will be here"),
                     TextFont {
                         font_size: 14.0,
@@ -43,9 +74,28 @@ pub fn spawn_chat_history_ui(mut commands: Commands) {
                     ChatMessageSlot(i),
                 ));
             }
-        });
+            spawn_text_field(
+                p,
+                "Chat message...",
+                ChatMessageInput,
+                ChatMessageText,
+                ChatMessageInputFieldCursor,
+                GameServerState::HomeScreen,
+            );
 
-       
+            // Login button
+            p.spawn((
+                DespawnOnExit(GameServerState::HomeScreen),
+                SendChatMessageButton,
+                Button,
+                Node {
+                    padding: UiRect::axes(Val::Px(24.0), Val::Px(10.0)),
+                    ..default()
+                },
+                BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
+            ))
+            .with_child(Text::new("Send!"));
+        });
 }
 
 pub fn receive_chat_messages(
@@ -59,7 +109,7 @@ pub fn receive_chat_messages(
         if let ServerMessage::NewGlobalChatMessage {
             content,
             username,
-            user_id,
+            user_id: _,
         } = &msg
         {
             history
@@ -91,5 +141,117 @@ pub fn receive_chat_messages(
             text.0 = msg.clone();
             *visibility = Visibility::Inherited;
         }
+    }
+}
+
+// pub fn setup_homescreen_ui(
+//     mut windows: Query<&mut Window>,
+//     cookie: Res<ServerCookie>,
+//     mut events: MessageWriter<ClientMessage>,
+//     mut commands: Commands,
+// ) {
+//     debug!("Entering setup_homescreen_ui");
+//     if let Some(cookie) = cookie.clone().0 {
+//         debug!("Send test msg");
+//         events.write(ClientMessage {
+//             cookie,
+//             content: ClientMessageContent::SendGlobalChatMessage {
+//                 content: "Hey bro and sis".to_string(),
+//             },
+//         });
+//     }
+pub fn handle_send_chat_message_button(
+    cookie: Res<ServerCookie>,
+    mut events: MessageWriter<ClientMessage>,
+    interaction_q: Query<&Interaction, (Changed<Interaction>, With<SendChatMessageButton>)>,
+    form: Res<ChatMessageForm>,
+) {
+    for interaction in &interaction_q {
+        if *interaction != Interaction::Pressed {
+            continue;
+        }
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            if web::is_mobile() && web_mobile_input::is_keyboard_shown() {
+                web_mobile_input::hide_keyboard();
+            }
+        }
+
+        let message  = form.chat_message.clone() ;
+        if let Some(cookie) = cookie.clone().0 {
+            debug!("Sen msg");
+            events.write(ClientMessage {
+                cookie,
+                content: ClientMessageContent::SendGlobalChatMessage { content: message },
+            });
+        }
+    }
+}
+
+pub fn handle_text_input(
+    mut form: ResMut<ChatMessageForm>,
+    mut evr: MessageReader<bevy::input::keyboard::KeyboardInput>,
+    chat_message_field_interaction_query: Query<&Interaction, With<ChatMessageInput>>,
+    #[cfg(target_os = "android")] anywhere_else_interaction_query: Query<
+        &Interaction,
+        (Without<UsernameInput>, Without<PasswordInput>),
+    >,
+    mut chat_message_text: Query<&mut Text, With<ChatMessageText> >,
+) {
+    let chat_message_pressed = chat_message_field_interaction_query
+        .single()
+        .is_ok_and(|i| *i == Interaction::Pressed);
+    #[cfg(target_os = "android")]
+    let anywhere_else_pressed = anywhere_else_interaction_query
+        .single()
+        .is_ok_and(|i| *i == Interaction::Pressed);
+
+    if chat_message_pressed {
+        form.focused = ChatMessageFormField::ChatMessage;
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        if web::is_mobile() && !web_mobile_input::is_keyboard_shown() && (chat_message_pressed) {
+            web_mobile_input::show_keyboard();
+        }
+    }
+    #[cfg(target_os = "android")]
+    {
+        if chat_message_pressed {
+            android_mobile_input::show_keyboard(&form.username, "Chat message");
+        } else if anywhere_else_pressed {
+            android_mobile_input::hide_keyboard();
+        }
+    }
+    for ev in evr.read() {
+        if ev.state != bevy::input::ButtonState::Pressed {
+            continue;
+        }
+        if ev.logical_key == bevy::input::keyboard::Key::Backspace {
+            let target = match form.focused {
+                ChatMessageFormField::ChatMessage => &mut form.chat_message,
+            };
+            target.pop();
+            continue;
+        }
+
+        // do not want to put "enter" into the text fields
+        if ev.logical_key == bevy::input::keyboard::Key::Enter {
+            continue;
+        }
+
+        // Use the `text` field for printable characters
+        if let Some(ref s) = ev.text {
+            let target = match form.focused {
+                ChatMessageFormField::ChatMessage => &mut form.chat_message,
+            };
+            target.push_str(s);
+        }
+    }
+
+    // Sync to UI - now these queries will actually find the entities
+    if let Ok(mut text) = chat_message_text.single_mut() {
+        text.0 = form.chat_message.clone();
     }
 }

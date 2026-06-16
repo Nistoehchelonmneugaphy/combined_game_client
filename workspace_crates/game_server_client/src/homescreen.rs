@@ -108,7 +108,7 @@ pub fn setup_homescreen_ui(
     mut windows: Query<&mut Window>,
     cookie: Res<ServerCookie>,
     mut events: MessageWriter<ClientMessage>,
-    mut commands: Commands,
+    commands: Commands,
 ) {
     debug!("Entering setup_homescreen_ui");
     if let Some(cookie) = cookie.clone().0 {
