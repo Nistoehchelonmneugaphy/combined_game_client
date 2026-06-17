@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 
 use bevy::prelude::*;
 use game_server_structs::websocket_communication::{
@@ -113,9 +113,9 @@ pub fn receive_chat_messages(
 ) {
     let mut repopulate = false;
     // copy all current slot's text into vec,
-    let mut slot_contents: Vec<String> = Vec::new();
-    for (_, text, _) in &slots {
-        slot_contents.push(text.0.clone());
+    let mut slot_contents: HashMap<usize, String> = HashMap::new();
+    for (slot, text, _) in &slots {
+        slot_contents.insert(slot.0, text.0.clone());
     }
 
     for msg in server_events.read() {
@@ -135,10 +135,9 @@ pub fn receive_chat_messages(
             repopulate = true;
 
             // make new vec where prev vec's element 0 is removed. new message is at last index, and second message is now first (at index 0)
-            let mut new_vec: Vec<String> = slot_contents.clone();
-            new_vec.remove(0);
-            new_vec.push(formatted_msg.clone());
-            slot_contents = new_vec.clone();
+          
+            slot_contents.remove(&0);
+            slot_contents.insert(current_slot_index.0, formatted_msg.clone());
         }
         if current_slot_index.0 < MAX_CHAT_SLOT_INDEX {
             for (slot, mut text, mut visibility) in &mut slots {
@@ -153,7 +152,7 @@ pub fn receive_chat_messages(
     }
     if repopulate {
         for (slot, mut text, mut visibility) in &mut slots {
-            if let Some(content) = slot_contents.get(slot.0) {
+            if let Some(content) = slot_contents.get(&slot.0) {
                 text.0 = content.clone();
                 *visibility = Visibility::Inherited;
             }
