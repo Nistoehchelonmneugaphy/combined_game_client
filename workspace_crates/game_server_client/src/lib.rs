@@ -11,6 +11,7 @@ use crate::{chat::{ChatPlugin, receive_chat_messages}, homescreen::{receive_from
 pub struct GameServerClientPlugin;
 mod homescreen;
 mod chat;
+mod websocket_connection;
 
 #[derive(SubStates, Default, Clone, Eq, PartialEq, Hash, Debug)]
 #[source(AppState = AppState::GameServer)]
@@ -35,7 +36,7 @@ impl Plugin for GameServerClientPlugin {
         app.add_systems(
             OnEnter(GameServerState::HomeScreen),
             (
-                homescreen::setup_connection,
+                websocket_connection::setup_connection,
                 homescreen::setup_homescreen_ui,
             ),
         );
