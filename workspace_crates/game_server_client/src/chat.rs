@@ -113,9 +113,9 @@ pub fn receive_chat_messages(
 ) {
     let mut repopulate = false;
     // copy all current slot's text into vec,
-    let mut slot_contents: Vec<String> = vec![String::from(""); MAX_CHAT_SLOT_INDEX];
-    for (slot, text, _) in &slots {
-        slot_contents[slot.0] = text.0.clone();
+    let mut slot_contents: Vec<String> = Vec::new();
+    for (_, text, _) in &slots {
+        slot_contents.push(text.0.clone());
     }
 
     for msg in server_events.read() {
@@ -137,7 +137,7 @@ pub fn receive_chat_messages(
             // make new vec where prev vec's element 0 is removed. new message is at last index, and second message is now first (at index 0)
             let mut new_vec: Vec<String> = slot_contents.clone();
             new_vec.remove(0);
-            new_vec[current_slot_index.0] = formatted_msg.clone();
+            new_vec.push(formatted_msg.clone());
             slot_contents = new_vec.clone();
         }
         if current_slot_index.0 < MAX_CHAT_SLOT_INDEX {
