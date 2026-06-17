@@ -153,13 +153,10 @@ pub fn receive_chat_messages(
     }
     if repopulate {
         for (slot, mut text, mut visibility) in &mut slots {
-            for (index, c) in slot_contents.iter().enumerate() {
-                if slot.0 == index {
-                    text.0 = c.clone();
-                    *visibility = Visibility::Inherited;
-                    *current_slot_index = CurrentChatMessageSlot(current_slot_index.0 + 1);
-                    break;
-                }
+            if let Some(content) = slot_contents.get(slot.0) {
+                text.0 = content.clone();
+                *visibility = Visibility::Inherited;
+                current_slot_index.0 += 1;
             }
         }
     }
