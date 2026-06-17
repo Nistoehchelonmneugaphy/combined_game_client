@@ -3,7 +3,6 @@ use bevy::prelude::*;
 use crate::websocket_connection::common::{
     BreakOrContinue, WsMessage, handle_incoming, serialize_outgoing,
 };
-use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use futures_util::{SinkExt, StreamExt};
 use game_server_structs::websocket_communication::{ClientMessage, ServerMessage};
 use gloo_net::websocket::{Message, futures::WebSocket};
