@@ -156,7 +156,6 @@ pub fn receive_chat_messages(
             if let Some(content) = slot_contents.get(slot.0) {
                 text.0 = content.clone();
                 *visibility = Visibility::Inherited;
-                current_slot_index.0 += 1;
             }
         }
     }
