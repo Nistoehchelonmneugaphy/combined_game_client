@@ -20,11 +20,14 @@ impl Plugin for ChatPlugin {
 use crate::{GameServerState, ServerCookie};
 
 #[derive(Component)]
-pub struct ChatMessageSlot(pub usize); // 0 = oldest, 4 = newest
+pub struct ChatMessageSlot(pub usize);
+
+#[derive(Resource)]
+pub struct CurrentChatMessageSlot(pub usize);
 
 #[derive(Resource, Default)]
 pub struct ChatHistory {
-    pub messages: VecDeque<String>, // max 5
+    pub _messages: VecDeque<String>,
 }
 #[derive(Component)]
 pub struct ChatMessageText;
@@ -49,6 +52,7 @@ pub enum ChatMessageFormField {
 pub fn spawn_chat_history_ui(mut commands: Commands) {
     commands.init_resource::<ChatMessageForm>();
     commands.insert_resource(ChatHistory::default());
+    commands.insert_resource(CurrentChatMessageSlot(0));
     // Spawn a root node, then 5 text slots as children
     commands
         .spawn((
@@ -71,7 +75,7 @@ pub fn spawn_chat_history_ui(mut commands: Commands) {
                         ..default()
                     },
                     TextColor(Color::WHITE),
-                    Visibility::Visible, // invisible until it has content
+                    Visibility::Visible,
                     ChatMessageSlot(i),
                 ));
             }
@@ -99,12 +103,14 @@ pub fn spawn_chat_history_ui(mut commands: Commands) {
         });
 }
 
+pub const _MAX_CHAT_SLOT_INDEX: usize = 5;
 pub fn receive_chat_messages(
     mut server_events: MessageReader<ServerMessage>,
-    mut history: ResMut<ChatHistory>,
+    mut _history: ResMut<ChatHistory>,
     mut slots: Query<(&ChatMessageSlot, &mut Text, &mut Visibility)>,
+    mut current_slot_index: ResMut<CurrentChatMessageSlot>,
 ) {
-    let mut got_new = false;
+    let mut _got_new = false;
 
     for msg in server_events.read() {
         if let ServerMessage::NewGlobalChatMessage {
@@ -114,25 +120,14 @@ pub fn receive_chat_messages(
         } = &msg
         {
             debug!("Received message {username}: {content}");
-            history
-                .messages
-                .push_back(format!("{}: {}", username, content));
-            if history.messages.len() > 5 {
-                history.messages.pop_front(); // shift out oldest
+            _got_new = true;
+            for (slot, mut text, mut visibility) in &mut slots {
+                if slot.0 == current_slot_index.0 {
+                    text.0 = format!("{username}: {content}");
+                    *visibility = Visibility::Inherited;
+                    *current_slot_index = CurrentChatMessageSlot(current_slot_index.0);
+                }
             }
-            got_new = true;
-        }
-    }
-
-    if !got_new {
-        return;
-    }
-
-   // Just set all to newest
-    for (slot, mut text, mut visibility) in &mut slots {
-        if let Some(msg) = history.messages.get(history.messages.len() - 1) {
-            text.0 = msg.clone();
-            *visibility = Visibility::Inherited;
         }
     }
 }

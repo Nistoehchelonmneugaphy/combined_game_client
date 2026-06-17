@@ -247,7 +247,6 @@ pub fn handle_text_input(
     if let Ok(mut text) = password_text.single_mut() {
         text.0 = "*".repeat(form.password.len());
     }
-    use bevy::prelude::*;
 }
 
 pub fn blink_cursor(
