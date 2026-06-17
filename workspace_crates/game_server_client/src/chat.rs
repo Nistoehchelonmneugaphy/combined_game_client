@@ -113,7 +113,7 @@ pub fn receive_chat_messages(
 ) {
     let mut repopulate = false;
     // copy all current slot's text into vec,
-    let mut slot_contents: Vec<String> = Vec::new();
+    let mut slot_contents: Vec<String> = vec![String::from(""); MAX_CHAT_SLOT_INDEX];
     for (slot, text, _) in &slots {
         slot_contents[slot.0] = text.0.clone();
     }
