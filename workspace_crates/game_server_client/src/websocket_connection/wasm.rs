@@ -24,8 +24,7 @@ async fn ws_loop(
     mut to_server_rx: mpsc::UnboundedReceiver<ClientMessage>,
     from_server_tx: mpsc::UnboundedSender<ServerMessage>,
 ) {
-    let encoded_cookie = URL_SAFE_NO_PAD.encode(cookie.as_bytes());
-    let encoded_cookie = format!("cookie{encoded_cookie}");
+    let encoded_cookie = game_server_structs::websocket_communication::pack_cookie(cookie);
 
     // apparently, sec-websocket-protocol is the only header that browsers allow websockets to send?
     // so, unlike native, I have  to either 1) send token over query string along with url or 2) send it after establishing ws connection (don't really feel like it) or 3) use the sec-websocket-protocol header, which normally has a different purpose.
