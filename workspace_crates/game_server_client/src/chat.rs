@@ -134,14 +134,14 @@ pub fn receive_chat_messages(
         let formatted_msg = format!("{username}: {content}");
         debug!("Received message: {formatted_msg}");
 
-        if current_slot_index.0 == MAX_CHAT_SLOT_INDEX {
+        if current_slot_index.0 > MAX_CHAT_SLOT_INDEX {
             repopulate = true;
 
             // make new vec where prev vec's element 0 is removed. new message is at last index, and second message is now first (at index 0)
 
-            repopulation_slot_contents.insert(current_slot_index.0, formatted_msg.clone());
+            repopulation_slot_contents.insert(MAX_CHAT_SLOT_INDEX, formatted_msg.clone());
         }
-        if current_slot_index.0 < MAX_CHAT_SLOT_INDEX {
+        if current_slot_index.0 <= MAX_CHAT_SLOT_INDEX {
             for (slot, mut text, mut visibility) in &mut slots {
                 if slot.0 == current_slot_index.0 {
                     text.0 = format!("{username}: {content}");
