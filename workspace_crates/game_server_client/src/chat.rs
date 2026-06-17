@@ -19,12 +19,6 @@ impl Plugin for ChatPlugin {
 }
 use crate::{GameServerState, ServerCookie};
 
-#[derive(Component)]
-pub struct ChatMessageSlot(pub usize);
-
-#[derive(Resource)]
-pub struct CurrentChatMessageSlot(pub usize);
-
 #[derive(Resource, Default)]
 pub struct ChatHistory {
     pub _messages: VecDeque<String>,
@@ -67,7 +61,7 @@ pub fn spawn_chat_history_ui(mut commands: Commands) {
             },
         ))
         .with_children(|p| {
-            for i in 0..5 {
+            for i in 0..=5 {
                 p.spawn((
                     Text::new("msg will be here"),
                     TextFont {
@@ -103,29 +97,68 @@ pub fn spawn_chat_history_ui(mut commands: Commands) {
         });
 }
 
-pub const _MAX_CHAT_SLOT_INDEX: usize = 5;
+pub const MAX_CHAT_SLOT_INDEX: usize = 5;
+
+#[derive(Component)]
+pub struct ChatMessageSlot(pub usize);
+
+#[derive(Resource)]
+pub struct CurrentChatMessageSlot(pub usize);
+
 pub fn receive_chat_messages(
     mut server_events: MessageReader<ServerMessage>,
     mut _history: ResMut<ChatHistory>,
     mut slots: Query<(&ChatMessageSlot, &mut Text, &mut Visibility)>,
     mut current_slot_index: ResMut<CurrentChatMessageSlot>,
 ) {
-    let mut _got_new = false;
+    let mut repopulate = false;
+    // copy all current slot's text into vec,
+    let mut slot_contents: Vec<String> = Vec::new();
+    for (slot, text, _) in &slots {
+        slot_contents[slot.0] = text.0.clone();
+    }
 
     for msg in server_events.read() {
-        if let ServerMessage::NewGlobalChatMessage {
+        let ServerMessage::NewGlobalChatMessage {
             content,
             username,
             user_id: _,
         } = &msg
-        {
-            debug!("Received message {username}: {content}");
-            _got_new = true;
+        else {
+            continue;
+        };
+
+        let formatted_msg = format!("{username}: {content}");
+        debug!("Received message: {formatted_msg}");
+
+        if current_slot_index.0 == MAX_CHAT_SLOT_INDEX {
+            repopulate = true;
+
+            // make new vec where prev vec's element 0 is removed. new message is at last index, and second message is now first (at index 0)
+            let mut new_vec: Vec<String> = slot_contents.clone();
+            new_vec.remove(0);
+            new_vec[current_slot_index.0] = formatted_msg.clone();
+            slot_contents = new_vec.clone();
+        }
+        if current_slot_index.0 < MAX_CHAT_SLOT_INDEX {
             for (slot, mut text, mut visibility) in &mut slots {
                 if slot.0 == current_slot_index.0 {
                     text.0 = format!("{username}: {content}");
                     *visibility = Visibility::Inherited;
-                    *current_slot_index = CurrentChatMessageSlot(current_slot_index.0);
+                    *current_slot_index = CurrentChatMessageSlot(current_slot_index.0 + 1);
+                    break;
+                }
+            }
+        }
+    }
+    if repopulate {
+        for (slot, mut text, mut visibility) in &mut slots {
+            for (index, c) in slot_contents.iter().enumerate() {
+                if slot.0 == index {
+                    text.0 = c.clone();
+                    *visibility = Visibility::Inherited;
+                    *current_slot_index = CurrentChatMessageSlot(current_slot_index.0 + 1);
+                    break;
                 }
             }
         }
