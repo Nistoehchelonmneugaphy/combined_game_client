@@ -7,6 +7,8 @@ use tracing::instrument;
 
 use crate::{GameServerState, ServerCookie, chat, websocket_connection::GameServerConnection};
 
+#[derive(Resource, Clone)]
+pub struct InQueue(pub bool);
 #[derive(Component)]
 pub struct EnterSoloQueueButton;
 
@@ -70,6 +72,7 @@ pub fn setup_homescreen_ui(
 #[instrument(skip_all)]
 fn spawn_queue_buttons(commands: &mut Commands) {
     debug!("Spawning queue buttons");
+    commands.insert_resource(InQueue(false));
     commands
         .spawn((
             DespawnOnExit(GameServerState::HomeScreen),
@@ -124,46 +127,118 @@ pub fn queue_buttons_handler(
     solo_interaction_q: Query<&Interaction, (Changed<Interaction>, With<EnterSoloQueueButton>)>,
     coop_interaction_q: Query<&Interaction, (Changed<Interaction>, With<EnterCoopQueueButton>)>,
     exit_interaction_q: Query<&Interaction, (Changed<Interaction>, With<ExitQueueButton>)>,
-    mut exit_button_q: Query<&mut Visibility, (With<ExitQueueButton>, Without<EnterSoloQueueButton>, Without<EnterCoopQueueButton>)>,
-    mut solo_button_q: Query<&mut Visibility, (With<EnterSoloQueueButton>, Without<ExitQueueButton>, Without<EnterCoopQueueButton>)>,
-    mut coop_button_q: Query<&mut Visibility, (With<EnterCoopQueueButton>, Without<ExitQueueButton>, Without<EnterSoloQueueButton>)>,
+    mut exit_button_q: Query<
+        &mut Visibility,
+        (
+            With<ExitQueueButton>,
+            Without<EnterSoloQueueButton>,
+            Without<EnterCoopQueueButton>,
+        ),
+    >,
+    mut solo_button_q: Query<
+        &mut Visibility,
+        (
+            With<EnterSoloQueueButton>,
+            Without<ExitQueueButton>,
+            Without<EnterCoopQueueButton>,
+        ),
+    >,
+    mut coop_button_q: Query<
+        &mut Visibility,
+        (
+            With<EnterCoopQueueButton>,
+            Without<ExitQueueButton>,
+            Without<EnterSoloQueueButton>,
+        ),
+    >,
+    mut in_queue: ResMut<InQueue>,
 ) {
-    for interaction in &solo_interaction_q {
-        if *interaction != Interaction::Pressed {
-            continue;
-        }
-        debug!("Entering solo queue");
-        set_buttons_visibility_based_on_if_in_queue(true, &mut exit_button_q, &mut solo_button_q, &mut coop_button_q);
-        return;
-    }
-    for interaction in &coop_interaction_q {
-        if *interaction != Interaction::Pressed {
-            continue;
-        }
-        debug!("Entering coop queue");
-        set_buttons_visibility_based_on_if_in_queue(true, &mut exit_button_q, &mut solo_button_q, &mut coop_button_q);
+    if in_queue.0 {
+        for interaction in &exit_interaction_q {
+            if *interaction != Interaction::Pressed {
+                continue;
+            }
+            debug!("Exiting queue");
+            *in_queue = InQueue(false);
+            set_buttons_visibility_based_on_if_in_queue(
+                in_queue.0,
+                &mut exit_button_q,
+                &mut solo_button_q,
+                &mut coop_button_q,
+            );
 
-        return;
-    }
-    for interaction in &exit_interaction_q {
-        if *interaction != Interaction::Pressed {
-            continue;
+            return;
         }
-        debug!("Exiting queue");
-        set_buttons_visibility_based_on_if_in_queue(false, &mut exit_button_q, &mut solo_button_q, &mut coop_button_q);
-       
-        return;
+    } else {
+        for interaction in &solo_interaction_q {
+            if *interaction != Interaction::Pressed {
+                continue;
+            }
+            debug!("Entering solo queue");
+            *in_queue = InQueue(true);
+            set_buttons_visibility_based_on_if_in_queue(
+                in_queue.0,
+                &mut exit_button_q,
+                &mut solo_button_q,
+                &mut coop_button_q,
+            );
+            return;
+        }
+        for interaction in &coop_interaction_q {
+            if *interaction != Interaction::Pressed {
+                continue;
+            }
+            debug!("Entering coop queue");
+            *in_queue = InQueue(true);
+            set_buttons_visibility_based_on_if_in_queue(
+                in_queue.0,
+                &mut exit_button_q,
+                &mut solo_button_q,
+                &mut coop_button_q,
+            );
+
+            return;
+        }
     }
 }
 
 fn set_buttons_visibility_based_on_if_in_queue(
-    in_queue: bool, 
-    exit_button_q: &mut Query<&mut Visibility, (With<ExitQueueButton>, Without<EnterSoloQueueButton>, Without<EnterCoopQueueButton>)>, 
-    solo_button_q: &mut Query<&mut Visibility, (With<EnterSoloQueueButton>, Without<ExitQueueButton>, Without<EnterCoopQueueButton>)>, 
-    coop_button_q: &mut Query<&mut Visibility, (With<EnterCoopQueueButton>, Without<ExitQueueButton>, Without<EnterSoloQueueButton>)>, 
+    in_queue: bool,
+    exit_button_q: &mut Query<
+        &mut Visibility,
+        (
+            With<ExitQueueButton>,
+            Without<EnterSoloQueueButton>,
+            Without<EnterCoopQueueButton>,
+        ),
+    >,
+    solo_button_q: &mut Query<
+        &mut Visibility,
+        (
+            With<EnterSoloQueueButton>,
+            Without<ExitQueueButton>,
+            Without<EnterCoopQueueButton>,
+        ),
+    >,
+    coop_button_q: &mut Query<
+        &mut Visibility,
+        (
+            With<EnterCoopQueueButton>,
+            Without<ExitQueueButton>,
+            Without<EnterSoloQueueButton>,
+        ),
+    >,
 ) {
-    let exit_button_visibility = if in_queue { Visibility::Visible } else { Visibility::Hidden };
-    let enter_queue_buttons_visibility = if in_queue { Visibility::Hidden } else { Visibility::Visible };
+    let exit_button_visibility = if in_queue {
+        Visibility::Visible
+    } else {
+        Visibility::Hidden
+    };
+    let enter_queue_buttons_visibility = if in_queue {
+        Visibility::Hidden
+    } else {
+        Visibility::Visible
+    };
     for mut vis in exit_button_q {
         *vis = exit_button_visibility.clone();
     }
@@ -173,5 +248,4 @@ fn set_buttons_visibility_based_on_if_in_queue(
     for mut vis in coop_button_q {
         *vis = enter_queue_buttons_visibility.clone();
     }
-
 }
