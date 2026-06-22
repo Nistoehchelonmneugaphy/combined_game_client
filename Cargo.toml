@@ -9,6 +9,7 @@ opt-level = 1
 debug = false
 
 [workspace.dependencies]
+rustls = { version = "0.23.41", default-features = false }
 tokio = { version = "1.52.3", features = ["full"] }
 ehttp = "0.7.1"
 bevy_mod_reqwest = { git = "ssh://git@github.com/Aeroel/bevy_mod_reqwest.git", features = [ "json", "rustls-tls", "log" ] }

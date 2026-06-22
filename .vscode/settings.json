@@ -5,7 +5,7 @@
         //"CXX": "/home/user1/android-sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android35-clang++",
         //"CC": "/home/user1/android-sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android35-clang",
     },
-    "rust-analyzer.cargo.target": "wasm32-unknown-unknown"
+    //"rust-analyzer.cargo.target": "wasm32-unknown-unknown"
     //"rust-analyzer.cargo.target": "aarch64-linux-android"
 
 }
