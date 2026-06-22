@@ -4528,6 +4528,7 @@ dependencies = [
  "game_server_structs",
  "gloo-net",
  "http",
+ "serde",
  "serde_json",
  "shared",
  "tokio",

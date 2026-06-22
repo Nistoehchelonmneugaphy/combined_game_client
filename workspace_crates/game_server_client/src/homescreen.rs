@@ -18,6 +18,14 @@ pub struct EnterCoopQueueButton;
 #[derive(Component)]
 pub struct ExitQueueButton;
 
+#[derive(Message, Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub enum InternalMessage {
+    SendChatMessage { message: String },
+    EnterSoloQueue,
+    EnterCoopQueue,
+    ExitQueue,
+}
+
 pub fn receive_from_server(
     mut connection: ResMut<GameServerConnection>,
     mut events: MessageWriter<ServerMessage>,
@@ -28,6 +36,41 @@ pub fn receive_from_server(
     }
 }
 
+pub fn process_internal_message(
+    cookie: Res<ServerCookie>,
+    mut event_reader: MessageReader<InternalMessage>,
+    mut event_writer: MessageWriter<ClientMessage>,
+) {
+    let cookie = match cookie.0.clone() {
+        Some(c) => c,
+        None => {
+            error!("Cookie is none");
+            return;
+        }
+    };
+    for msg in event_reader.read() {
+        match msg {
+            InternalMessage::SendChatMessage { message } => {
+                debug!("Send msg");
+                event_writer.write(ClientMessage {
+                    cookie: cookie.clone(),
+                    content: ClientMessageContent::SendGlobalChatMessage {
+                        content: message.to_string(),
+                    },
+                });
+            }
+            InternalMessage::EnterSoloQueue => {
+                debug!("InternalMessage::EnterSoloQueue");
+            }
+            InternalMessage::EnterCoopQueue => {
+                debug!("InternalMessage::EnterCoopQueue");
+            }
+            InternalMessage::ExitQueue => {
+                  debug!("InternalMessage::ExitQueue");
+            }
+        }
+    }
+}
 // any bevy system can send by writing a ToServer event
 pub fn send_to_server(
     connection: Res<GameServerConnection>,
@@ -124,6 +167,7 @@ fn spawn_queue_buttons(commands: &mut Commands) {
 }
 
 pub fn queue_buttons_handler(
+    mut event_writer: MessageWriter<InternalMessage>,
     solo_interaction_q: Query<&Interaction, (Changed<Interaction>, With<EnterSoloQueueButton>)>,
     coop_interaction_q: Query<&Interaction, (Changed<Interaction>, With<EnterCoopQueueButton>)>,
     exit_interaction_q: Query<&Interaction, (Changed<Interaction>, With<ExitQueueButton>)>,
@@ -159,6 +203,7 @@ pub fn queue_buttons_handler(
                 continue;
             }
             debug!("Exiting queue");
+            event_writer.write(InternalMessage::ExitQueue);
             *in_queue = InQueue(false);
             set_buttons_visibility_based_on_if_in_queue(
                 in_queue.0,
@@ -175,6 +220,7 @@ pub fn queue_buttons_handler(
                 continue;
             }
             debug!("Entering solo queue");
+            event_writer.write(InternalMessage::EnterSoloQueue);
             *in_queue = InQueue(true);
             set_buttons_visibility_based_on_if_in_queue(
                 in_queue.0,
@@ -189,6 +235,7 @@ pub fn queue_buttons_handler(
                 continue;
             }
             debug!("Entering coop queue");
+            event_writer.write(InternalMessage::EnterCoopQueue);
             *in_queue = InQueue(true);
             set_buttons_visibility_based_on_if_in_queue(
                 in_queue.0,

@@ -1,9 +1,9 @@
 use std::collections::{HashMap, VecDeque};
 
 use bevy::prelude::*;
-use game_server_structs::websocket_communication::{
-    ClientMessage, ClientMessageContent, ServerMessage,
-};
+use game_server_structs::websocket_communication::
+    ServerMessage
+;
 use shared::spawn_text_field;
 
 pub struct ChatPlugin;
@@ -17,7 +17,7 @@ impl Plugin for ChatPlugin {
         );
     }
 }
-use crate::{GameServerState, ServerCookie};
+use crate::{GameServerState, homescreen::InternalMessage};
 
 #[derive(Resource, Default)]
 pub struct ChatHistory {
@@ -164,8 +164,7 @@ pub fn receive_chat_messages(
 
 pub fn handle_send_chat_message_button(
     mut form: ResMut<ChatMessageForm>,
-    cookie: Res<ServerCookie>,
-    mut events: MessageWriter<ClientMessage>,
+    mut event_writer: MessageWriter<InternalMessage>,
     interaction_q: Query<&Interaction, (Changed<Interaction>, With<SendChatMessageButton>)>,
     mut chat_message_text: Query<&mut Text, With<ChatMessageText>>,
 ) {
@@ -182,16 +181,11 @@ pub fn handle_send_chat_message_button(
         }
 
         let message = form.chat_message.clone();
-        if let Some(cookie) = cookie.clone().0 {
-            debug!("Send msg");
-            events.write(ClientMessage {
-                cookie,
-                content: ClientMessageContent::SendGlobalChatMessage { content: message },
-            });
-            form.chat_message = "".to_string();
-            if let Ok(mut text) = chat_message_text.single_mut() {
-                text.0 = form.chat_message.clone();
-            }
+        debug!("Send msg");
+        event_writer.write(InternalMessage::SendChatMessage { message });
+        form.chat_message = "".to_string();
+        if let Ok(mut text) = chat_message_text.single_mut() {
+            text.0 = form.chat_message.clone();
         }
     }
 }
