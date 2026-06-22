@@ -18,8 +18,12 @@ pub fn main() {
 
     let mut app = App::new();
     app.add_systems(Startup, add_camera_2d);
+
+    // soft keyboard input
     #[cfg(target_arch = "wasm32")]
     app.add_plugins(web_mobile_input::MobileInputPlugin);
+    #[cfg(target_os = "android")]
+    app.add_plugins(android_mobile_input::AndroidMobileInputPlugin);
 
     #[cfg(target_os = "android")]
     {
@@ -28,7 +32,6 @@ pub fn main() {
             Update,
             handle_lifetime.run_if(any_with_component::<AudioSink>),
         );
-        app.add_plugins(android_mobile_input::AndroidMobileInputPlugin);
     }
 
     // create default window will be changed later
@@ -73,7 +76,6 @@ pub fn main() {
 fn add_camera_2d(mut commands: Commands) {
     commands.spawn(Camera2d);
 }
-
 
 // Pause audio when app goes into background and resume when it returns.
 // This is handled by the OS on iOS, but not on Android.
