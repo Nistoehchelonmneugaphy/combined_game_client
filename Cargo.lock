@@ -4532,6 +4532,7 @@ dependencies = [
  "shared",
  "tokio",
  "tokio-tungstenite 0.29.0",
+ "tracing",
  "url",
  "wasm-bindgen-futures",
  "web",

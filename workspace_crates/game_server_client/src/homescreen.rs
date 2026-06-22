@@ -3,6 +3,7 @@ use game_server_structs::websocket_communication::{
     ClientMessage, ClientMessageContent, ServerMessage,
 };
 use shared::set_title;
+use tracing::instrument;
 
 use crate::{GameServerState, ServerCookie, chat, websocket_connection::GameServerConnection};
 
@@ -59,7 +60,9 @@ pub fn setup_homescreen_ui(
 
 }
 
+#[instrument(skip_all)]
 fn queue_buttons(commands: &mut Commands) {
+    debug!("Spawning queue buttons");
         commands
         .spawn((
             DespawnOnExit(GameServerState::HomeScreen),

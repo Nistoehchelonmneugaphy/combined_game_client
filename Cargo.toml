@@ -36,6 +36,7 @@ envy = "0.4.2"
 git-version = "0.3.9"
 rand = "0.10.1"
 anyhow = "1.0.102"
+tracing = "0.1.44"
 
 # test of another way to include crates
 [workspace.dependencies.uuid]
