@@ -11,6 +11,15 @@ use web_mobile_input;
 #[bevy_main]
 pub fn main() {
     println!("hey there!!! :)");
+    /* fix the error:
+        Could not automatically determine the process-level CryptoProvider from Rustls crate features.
+    Call CryptoProvider::install_default() before this point to select a provider manually, or make sure exactly one of the 'aws-lc-rs' and 'ring' features is enabled.
+    See the documentation of the CryptoProvider type for more information.
+        */
+    #[cfg(all(not(target_os = "android"), not(target_arch = "wasm32")))]
+    rustls::crypto::aws_lc_rs::default_provider()
+        .install_default()
+        .unwrap();
 
     // Without this, error console.logs in wasm builds are rather unhelpful, but adding this adds helpful stack traces of where errors occurred
     #[cfg(target_arch = "wasm32")]
