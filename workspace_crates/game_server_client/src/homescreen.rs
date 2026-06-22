@@ -7,6 +7,14 @@ use tracing::instrument;
 
 use crate::{GameServerState, ServerCookie, chat, websocket_connection::GameServerConnection};
 
+#[derive(Component)]
+pub struct EnterSoloQueueButton;
+
+#[derive(Component)]
+pub struct EnterCoopQueueButton;
+
+#[derive(Component)]
+pub struct ExitQueueButton;
 
 pub fn receive_from_server(
     mut connection: ResMut<GameServerConnection>,
@@ -27,7 +35,6 @@ pub fn send_to_server(
         connection.to_server.send(msg.clone()).ok();
     }
 }
-
 
 pub fn setup_homescreen_ui(
     mut windows: Query<&mut Window>,
@@ -57,14 +64,13 @@ pub fn setup_homescreen_ui(
 
     chat::spawn_chat_history_ui(&mut commands);
     debug!("Calling queue_buttons");
-    queue_buttons(&mut commands);
-
+    spawn_queue_buttons(&mut commands);
 }
 
 #[instrument(skip_all)]
-fn queue_buttons(commands: &mut Commands) {
+fn spawn_queue_buttons(commands: &mut Commands) {
     debug!("Spawning queue buttons");
-        commands
+    commands
         .spawn((
             DespawnOnExit(GameServerState::HomeScreen),
             Node {
@@ -77,10 +83,9 @@ fn queue_buttons(commands: &mut Commands) {
             },
         ))
         .with_children(|p| {
-
-            
             p.spawn((
                 DespawnOnExit(GameServerState::HomeScreen),
+                EnterSoloQueueButton,
                 Button,
                 Node {
                     padding: UiRect::axes(Val::Px(24.0), Val::Px(10.0)),
@@ -91,6 +96,7 @@ fn queue_buttons(commands: &mut Commands) {
             .with_child(Text::new("Queue solo"));
             p.spawn((
                 DespawnOnExit(GameServerState::HomeScreen),
+                EnterCoopQueueButton,
                 Button,
                 Node {
                     padding: UiRect::axes(Val::Px(24.0), Val::Px(10.0)),
@@ -99,5 +105,73 @@ fn queue_buttons(commands: &mut Commands) {
                 BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
             ))
             .with_child(Text::new("Queue co-op"));
+            p.spawn((
+                DespawnOnExit(GameServerState::HomeScreen),
+                Visibility::Hidden,
+                ExitQueueButton,
+                Button,
+                Node {
+                    padding: UiRect::axes(Val::Px(24.0), Val::Px(10.0)),
+                    ..default()
+                },
+                BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
+            ))
+            .with_child(Text::new("Exit queue"));
         });
+}
+
+pub fn queue_buttons_handler(
+    solo_interaction_q: Query<&Interaction, (Changed<Interaction>, With<EnterSoloQueueButton>)>,
+    coop_interaction_q: Query<&Interaction, (Changed<Interaction>, With<EnterCoopQueueButton>)>,
+    exit_interaction_q: Query<&Interaction, (Changed<Interaction>, With<ExitQueueButton>)>,
+    mut exit_button_q: Query<&mut Visibility, (With<ExitQueueButton>, Without<EnterSoloQueueButton>, Without<EnterCoopQueueButton>)>,
+    mut solo_button_q: Query<&mut Visibility, (With<EnterSoloQueueButton>, Without<ExitQueueButton>, Without<EnterCoopQueueButton>)>,
+    mut coop_button_q: Query<&mut Visibility, (With<EnterCoopQueueButton>, Without<ExitQueueButton>, Without<EnterSoloQueueButton>)>,
+) {
+    for interaction in &solo_interaction_q {
+        if *interaction != Interaction::Pressed {
+            continue;
+        }
+        debug!("Entering solo queue");
+        set_buttons_visibility_based_on_if_in_queue(true, &mut exit_button_q, &mut solo_button_q, &mut coop_button_q);
+        return;
+    }
+    for interaction in &coop_interaction_q {
+        if *interaction != Interaction::Pressed {
+            continue;
+        }
+        debug!("Entering coop queue");
+        set_buttons_visibility_based_on_if_in_queue(true, &mut exit_button_q, &mut solo_button_q, &mut coop_button_q);
+
+        return;
+    }
+    for interaction in &exit_interaction_q {
+        if *interaction != Interaction::Pressed {
+            continue;
+        }
+        debug!("Exiting queue");
+        set_buttons_visibility_based_on_if_in_queue(false, &mut exit_button_q, &mut solo_button_q, &mut coop_button_q);
+       
+        return;
+    }
+}
+
+fn set_buttons_visibility_based_on_if_in_queue(
+    in_queue: bool, 
+    exit_button_q: &mut Query<&mut Visibility, (With<ExitQueueButton>, Without<EnterSoloQueueButton>, Without<EnterCoopQueueButton>)>, 
+    solo_button_q: &mut Query<&mut Visibility, (With<EnterSoloQueueButton>, Without<ExitQueueButton>, Without<EnterCoopQueueButton>)>, 
+    coop_button_q: &mut Query<&mut Visibility, (With<EnterCoopQueueButton>, Without<ExitQueueButton>, Without<EnterSoloQueueButton>)>, 
+) {
+    let exit_button_visibility = if in_queue { Visibility::Visible } else { Visibility::Hidden };
+    let enter_queue_buttons_visibility = if in_queue { Visibility::Hidden } else { Visibility::Visible };
+    for mut vis in exit_button_q {
+        *vis = exit_button_visibility.clone();
+    }
+    for mut vis in solo_button_q {
+        *vis = enter_queue_buttons_visibility.clone();
+    }
+    for mut vis in coop_button_q {
+        *vis = enter_queue_buttons_visibility.clone();
+    }
+
 }

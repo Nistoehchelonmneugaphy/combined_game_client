@@ -47,7 +47,7 @@ impl Plugin for GameServerClientPlugin {
 
         app.add_systems(
             Update,
-            (receive_from_server, send_to_server, receive_chat_messages, ).run_if(in_state(GameServerState::HomeScreen)),
+            (receive_from_server, send_to_server, receive_chat_messages, homescreen::queue_buttons_handler).run_if(in_state(GameServerState::HomeScreen)),
 
         );
         app.add_plugins(ChatPlugin);
