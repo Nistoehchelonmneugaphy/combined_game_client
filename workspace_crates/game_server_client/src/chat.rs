@@ -43,7 +43,7 @@ pub enum ChatMessageFormField {
     ChatMessage,
 }
 
-pub fn spawn_chat_history_ui(mut commands: Commands) {
+pub fn spawn_chat_history_ui(commands: &mut Commands) {
     commands.init_resource::<ChatMessageForm>();
     commands.insert_resource(ChatHistory::default());
     commands.insert_resource(CurrentChatMessageSlot(0));
@@ -82,7 +82,7 @@ pub fn spawn_chat_history_ui(mut commands: Commands) {
                 GameServerState::HomeScreen,
             );
 
-            // Login button
+            // Send button
             p.spawn((
                 DespawnOnExit(GameServerState::HomeScreen),
                 SendChatMessageButton,

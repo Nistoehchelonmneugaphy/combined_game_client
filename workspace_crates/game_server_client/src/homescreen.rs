@@ -4,7 +4,7 @@ use game_server_structs::websocket_communication::{
 };
 use shared::set_title;
 
-use crate::{ServerCookie, chat, websocket_connection::GameServerConnection};
+use crate::{GameServerState, ServerCookie, chat, websocket_connection::GameServerConnection};
 
 
 pub fn receive_from_server(
@@ -32,7 +32,7 @@ pub fn setup_homescreen_ui(
     mut windows: Query<&mut Window>,
     cookie: Res<ServerCookie>,
     mut events: MessageWriter<ClientMessage>,
-    commands: Commands,
+    mut commands: Commands,
 ) {
     debug!("Entering setup_homescreen_ui");
     if let Some(cookie) = cookie.clone().0 {
@@ -54,5 +54,46 @@ pub fn setup_homescreen_ui(
         window.resolution.set(480.0, 320.0);
     };
 
-    chat::spawn_chat_history_ui(commands);
+    chat::spawn_chat_history_ui(&mut commands);
+    queue_buttons(&mut commands);
+
+}
+
+fn queue_buttons(commands: &mut Commands) {
+        commands
+        .spawn((
+            DespawnOnExit(GameServerState::HomeScreen),
+            Node {
+                position_type: PositionType::Absolute,
+                bottom: Val::Px(10.0),
+                left: Val::Px(10.0),
+                flex_direction: FlexDirection::Column,
+                row_gap: Val::Px(4.0),
+                ..default()
+            },
+        ))
+        .with_children(|p| {
+
+            
+            p.spawn((
+                DespawnOnExit(GameServerState::HomeScreen),
+                Button,
+                Node {
+                    padding: UiRect::axes(Val::Px(24.0), Val::Px(10.0)),
+                    ..default()
+                },
+                BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
+            ))
+            .with_child(Text::new("Queue solo"));
+            p.spawn((
+                DespawnOnExit(GameServerState::HomeScreen),
+                Button,
+                Node {
+                    padding: UiRect::axes(Val::Px(24.0), Val::Px(10.0)),
+                    ..default()
+                },
+                BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
+            ))
+            .with_child(Text::new("Queue co-op"));
+        });
 }
