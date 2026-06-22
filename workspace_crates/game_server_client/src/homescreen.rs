@@ -56,6 +56,7 @@ pub fn setup_homescreen_ui(
     };
 
     chat::spawn_chat_history_ui(&mut commands);
+    debug!("Calling queue_buttons");
     queue_buttons(&mut commands);
 
 }
@@ -68,8 +69,8 @@ fn queue_buttons(commands: &mut Commands) {
             DespawnOnExit(GameServerState::HomeScreen),
             Node {
                 position_type: PositionType::Absolute,
-                bottom: Val::Px(10.0),
-                left: Val::Px(10.0),
+                top: Val::Px(10.0),
+                right: Val::Px(10.0),
                 flex_direction: FlexDirection::Column,
                 row_gap: Val::Px(4.0),
                 ..default()
