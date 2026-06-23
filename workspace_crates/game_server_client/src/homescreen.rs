@@ -58,7 +58,7 @@ pub fn process_internal_message(
                         content: message.to_string(),
                     },
                 });
-            }
+            }   
             InternalMessage::EnterSoloQueue => {
                 debug!("InternalMessage::EnterSoloQueue");
             }
