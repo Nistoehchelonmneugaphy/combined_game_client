@@ -5255,6 +5255,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "soft_keyboard_input"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "jni 0.22.4",
+ "web",
+ "web-sys",
+]
+
+[[package]]
 name = "spin"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
