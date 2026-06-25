@@ -5,9 +5,9 @@ edition = "2024"
 
 [dependencies]
 bevy = { workspace = true }
-avian3d = { version = "=0.7.0", features = ["enhanced-determinism", "serialize"]}
-lightyear = { version = "=0.26.4", features = ["deterministic", "websocket", "lightyear_aeronet", "leafwing"]}
-leafwing-input-manager = {version="0.20.0", }
+# avian3d = { version = "=0.7.0", features = ["enhanced-determinism", "serialize"]}
+# lightyear = { version = "=0.26.4", features = ["deterministic", "websocket", "lightyear_aeronet", "leafwing"]}
+# leafwing-input-manager = {version="0.20.0", }
 
 [features]
 server = []
