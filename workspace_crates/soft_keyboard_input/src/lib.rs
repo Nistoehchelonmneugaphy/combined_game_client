@@ -26,6 +26,7 @@ mod browser;
 pub fn show_soft_keyboard_if_needed(existing_value: &str, hint: &str) {
     #[cfg(target_arch = "wasm32")]
     {
+        let (_, _) = (existing_value, hint);
         if web::is_mobile() && !browser::is_keyboard_shown() {
             browser::show_keyboard();
         }

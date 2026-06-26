@@ -3600,8 +3600,7 @@ dependencies = [
  "ehttp",
  "serde_json",
  "shared",
- "web",
- "web_mobile_input",
+ "soft_keyboard_input",
 ]
 
 [[package]]

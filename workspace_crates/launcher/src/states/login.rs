@@ -40,10 +40,8 @@ pub struct PasswordText;
 #[derive(Component)]
 pub struct UsernameInput;
 
-
 #[derive(Component)]
 pub struct UsernameText;
-
 
 #[derive(Component)]
 pub struct LoginButton;
@@ -53,7 +51,6 @@ pub struct ErrorLabel;
 
 #[derive(Component)]
 pub struct ConnectButton;
-
 
 pub struct CouldNotContactAuthServer;
 
@@ -117,7 +114,6 @@ pub fn setup_launcher_login_ui(
         ))
         .with_children(|p| {
             spawn_text_field(
-                
                 p,
                 "Username",
                 UsernameInput,
@@ -170,7 +166,7 @@ pub fn handle_text_input(
     mut evr: MessageReader<bevy::input::keyboard::KeyboardInput>,
     username_field_interaction_query: Query<&Interaction, With<UsernameInput>>,
     password_field_interaction_query: Query<&Interaction, With<PasswordInput>>,
-    #[cfg(target_os = "android")] anywhere_else_interaction_query: Query<
+    anywhere_else_interaction_query: Query<
         &Interaction,
         (Without<UsernameInput>, Without<PasswordInput>),
     >,
@@ -183,35 +179,20 @@ pub fn handle_text_input(
     let password_pressed = password_field_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
-    #[cfg(target_os = "android")]
     let anywhere_else_pressed = anywhere_else_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
 
     if username_pressed {
         form.focused = FormField::Username;
+        soft_keyboard_input::show_soft_keyboard_if_needed(&form.username, "Username");
     } else if password_pressed {
         form.focused = FormField::Password;
+        soft_keyboard_input::show_soft_keyboard_if_needed(&form.password, "Password");
+    } else if anywhere_else_pressed {
+        soft_keyboard_input::hide_soft_keyboard_if_needed();
     }
-    #[cfg(target_arch = "wasm32")]
-    {
-        if web::is_mobile()
-            && !web_mobile_input::is_keyboard_shown()
-            && (username_pressed || password_pressed)
-        {
-            web_mobile_input::show_keyboard();
-        }
-    }
-    #[cfg(target_os = "android")]
-    {
-        if username_pressed {
-            android_mobile_input::show_keyboard(&form.username, "Username");
-        } else if password_pressed {
-            android_mobile_input::show_keyboard(&form.password, "Password");
-        } else if anywhere_else_pressed {
-            android_mobile_input::hide_keyboard();
-        }
-    }
+
     for ev in evr.read() {
         if ev.state != bevy::input::ButtonState::Pressed {
             continue;
@@ -308,12 +289,7 @@ pub fn handle_login_button(
             continue;
         }
 
-        #[cfg(target_arch = "wasm32")]
-        {
-            if web::is_mobile() && web_mobile_input::is_keyboard_shown() {
-                web_mobile_input::hide_keyboard();
-            }
-        }
+        soft_keyboard_input::hide_soft_keyboard_if_needed();
 
         if let Ok(mut text) = error_q.single_mut() {
             **text = "".to_string();
