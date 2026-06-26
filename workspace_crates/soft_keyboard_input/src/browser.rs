@@ -13,9 +13,22 @@ use std::sync::Mutex;
 
 use web_sys::{FocusOptions, HtmlInputElement, js_sys, wasm_bindgen::JsCast};
 
-static EVENT_QUEUE: Mutex<Vec<KeyboardInput>> = Mutex::new(Vec::new());
+
+pub struct SoftKeyboardInputPlugin;
+
+impl Plugin for SoftKeyboardInputPlugin {
+    fn build(&self, app: &mut App) {
+        setup_event_listeners();
+        app.add_systems(First, poll_events);
+        app.add_systems(Startup, setup_focus_guard);
+    }
+}
+
+pub static KEYBOARD_EVENT_QUEUE: Mutex<Vec<KeyboardInput>> = Mutex::new(Vec::new());
 
 const MOBILE_INPUT_ELEMENT_ID: &str = "mobile-keyboard-input";
+
+
 
 pub fn is_keyboard_shown() -> bool {
     let document = web_sys::window().unwrap().document().unwrap();
@@ -60,15 +73,7 @@ pub fn show_keyboard() {
     js_sys::eval("window.setKeyboardOpen(true)").unwrap();
 }
 
-pub struct MobileInputPlugin;
 
-impl Plugin for MobileInputPlugin {
-    fn build(&self, app: &mut App) {
-        setup_event_listeners();
-        app.add_systems(First, poll_events);
-        app.add_systems(Startup, setup_focus_guard);
-    }
-}
 
 fn setup_focus_guard() {
     use web::BEVY_CANVAS_ID;
@@ -123,7 +128,7 @@ fn setup_event_listeners() {
         }
 
         for ch in data.chars() {
-            if let Ok(mut queue) = EVENT_QUEUE.lock() {
+            if let Ok(mut queue) = KEYBOARD_EVENT_QUEUE.lock() {
                 let event = KeyboardInput {
                     key_code: KeyCode::Unidentified(
                         bevy::input::keyboard::NativeKeyCode::Unidentified,
@@ -166,7 +171,7 @@ fn setup_event_listeners() {
             _ => return,
         };
 
-        if let Ok(mut queue) = EVENT_QUEUE.lock() {
+        if let Ok(mut queue) = KEYBOARD_EVENT_QUEUE.lock() {
             let event = KeyboardInput {
                 key_code,
                 logical_key,
@@ -202,7 +207,7 @@ fn setup_event_listeners() {
 }
 
 fn poll_events(mut keyboard_events: MessageWriter<KeyboardInput>) {
-    let Ok(mut queue) = EVENT_QUEUE.lock() else {
+    let Ok(mut queue) = KEYBOARD_EVENT_QUEUE.lock() else {
         return;
     };
     for event in queue.drain(..) {

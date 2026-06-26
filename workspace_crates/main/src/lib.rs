@@ -3,10 +3,9 @@ use bevy::{prelude::*, window::WindowResolution};
 use game_server_client::GameServerClientPlugin;
 use launcher::LauncherPlugin;
 use shared::AppState;
+use soft_keyboard_input::SoftKeyboardInputPlugin;
 use startup::StartupPlugin;
 
-#[cfg(target_arch = "wasm32")]
-use web_mobile_input;
 
 #[bevy_main]
 pub fn main() {
@@ -28,11 +27,7 @@ pub fn main() {
     let mut app = App::new();
     app.add_systems(Startup, add_camera_2d);
 
-    // soft keyboard input
-    #[cfg(target_arch = "wasm32")]
-    app.add_plugins(web_mobile_input::MobileInputPlugin);
-    #[cfg(target_os = "android")]
-    app.add_plugins(android_mobile_input::AndroidMobileInputPlugin);
+    app.add_plugins(SoftKeyboardInputPlugin);
 
     #[cfg(target_os = "android")]
     {

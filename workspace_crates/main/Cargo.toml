@@ -26,5 +26,6 @@ launcher = { workspace = true }
 startup = { workspace = true }
 game_server_client = { workspace = true }
 shared = { workspace = true }
+soft_keyboard_input = { workspace = true  }
 [target.'cfg(all(not(target_os = "android"), not(target_arch = "wasm32")))'.dependencies]
 rustls = { workspace = true, features = [ "aws-lc-rs", "prefer-post-quantum", "logging", "std", "tls12" ] }

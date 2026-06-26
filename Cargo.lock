@@ -3742,6 +3742,7 @@ dependencies = [
  "launcher",
  "rustls",
  "shared",
+ "soft_keyboard_input",
  "startup",
  "web",
  "web_mobile_input",

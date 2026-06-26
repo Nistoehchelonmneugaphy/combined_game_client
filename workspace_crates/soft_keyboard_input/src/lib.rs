@@ -1,14 +1,51 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+use bevy::prelude::*;
+
+pub struct SoftKeyboardInputPlugin;
+
+impl Plugin for SoftKeyboardInputPlugin {
+    fn build(&self, app: &mut App) {
+        #[cfg(target_os = "android")]
+        app.add_plugins(android::SoftKeyboardInputPlugin);
+        #[cfg(target_arch = "wasm32")]
+        app.add_plugins(browser::SoftKeyboardInputPlugin);
+
+        // I don't suppose that any other target really needs this plugin... Is this right?
+        // let _ = app in order to remove clippy warnings. Alternative is to do conditional parameter declaration in signature with app on wasm/android and _app on non wasm android.
+        #[cfg(not(any(target_os = "android", target_arch = "wasm32")))]
+        let _ = app;
+    }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[cfg(target_os = "android")]
+mod android;
+#[cfg(target_arch = "wasm32")]
+mod browser;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+// In principle, I could detect whether the user is using a hardware keyboard whether on PC or mobile or browser, and only show if the answer is no (in terms of PC, for example the user could be using a laptop with detachable screen in tablet mode). But for now I just show if user is on android or mobile wasm for simplicity.
+
+#[allow(unused)]
+pub fn show_soft_keyboard_if_needed(existing_value: &str, hint: &str) {
+    #[cfg(target_arch = "wasm32")]
+    {
+        if web::is_mobile() && !browser::is_keyboard_shown() {
+            browser::show_keyboard();
+        }
+    }
+    #[cfg(target_os = "android")]
+    {
+        android::show_keyboard(existing_value, hint);
+    }
+}
+
+pub fn hide_soft_keyboard_if_needed() {
+    #[cfg(target_arch = "wasm32")]
+    {
+        if web::is_mobile() && browser::is_keyboard_shown() {
+            browser::hide_keyboard();
+        }
+    }
+    #[cfg(target_os = "android")]
+    {
+        android::hide_keyboard();
     }
 }

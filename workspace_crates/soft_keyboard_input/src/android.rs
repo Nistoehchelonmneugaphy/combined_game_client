@@ -12,15 +12,17 @@ use jni::{JValue, jni_sig, jni_str, objects::JObject, refs::Global, sys::_jobjec
 // use ndk_context::android_context;
 use std::sync::Mutex;
 
-pub static EVENT_QUEUE: Mutex<Vec<KeyboardInput>> = Mutex::new(Vec::new());
+pub struct SoftKeyboardInputPlugin;
 
-pub struct AndroidMobileInputPlugin;
-
-impl Plugin for AndroidMobileInputPlugin {
+impl Plugin for SoftKeyboardInputPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(First, poll_events);
     }
 }
+
+pub static KEYBOARD_EVENT_QUEUE: Mutex<Vec<KeyboardInput>> = Mutex::new(Vec::new());
+
+
 
 pub fn get_android_app() -> AndroidApp {
     bevy::android::ANDROID_APP.get().unwrap().clone()
@@ -36,7 +38,6 @@ pub fn get_vm() -> JavaVM {
     let vm = unsafe { jni::JavaVM::from_raw(android_app.vm_as_ptr().cast()) };
     vm
 }
-
 
 pub fn show_keyboard(existing_value: &str, hint: &str) {
     warn!("Calling android_mobile_input::show_keyboard()");
@@ -83,7 +84,7 @@ pub fn hide_keyboard() {
 }
 
 fn poll_events(mut keyboard_events: MessageWriter<KeyboardInput>) {
-    let Ok(mut queue) = EVENT_QUEUE.lock() else {
+    let Ok(mut queue) = KEYBOARD_EVENT_QUEUE.lock() else {
         return;
     };
     for event in queue.drain(..) {
@@ -100,7 +101,7 @@ pub extern "system" fn Java_org_cgc_main_FloatingInput_onTextChanged(
 ) {
     let text: String = jni::objects::JString::from(text).to_string();
     warn!("Called Rust fn from Java, Yay! text: {text}");
-    let Ok(mut queue) = EVENT_QUEUE.lock() else {
+    let Ok(mut queue) = KEYBOARD_EVENT_QUEUE.lock() else {
         return;
     };
     for ch in text.chars() {
@@ -119,8 +120,6 @@ pub extern "system" fn Java_org_cgc_main_FloatingInput_onTextChanged(
         queue.push(release);
     }
 }
-#[derive(Resource)]
-pub struct AndroidAppResource(pub AndroidApp);
 
 /// Called from Java for Enter / Backspace
 #[unsafe(no_mangle)]
@@ -137,7 +136,7 @@ pub extern "C" fn Java_org_cgc_main_FloatingInput_onSpecialKey(
         "Escape" => (KeyCode::Escape, Key::Escape),
         _ => return,
     };
-    let Ok(mut queue) = EVENT_QUEUE.lock() else {
+    let Ok(mut queue) = KEYBOARD_EVENT_QUEUE.lock() else {
         return;
     };
     let event = KeyboardInput {

@@ -22,21 +22,6 @@ impl Plugin for AndroidMobileInputPlugin {
     }
 }
 
-pub fn get_android_app() -> AndroidApp {
-    bevy::android::ANDROID_APP.get().unwrap().clone()
-}
-pub fn get_raw_activity_global() -> *mut _jobject {
-    let android_app = get_android_app();
-
-    let raw_activity_global = android_app.activity_as_ptr() as jni::sys::jobject;
-    raw_activity_global
-}
-pub fn get_vm() -> JavaVM {
-    let android_app = get_android_app();
-    let vm = unsafe { jni::JavaVM::from_raw(android_app.vm_as_ptr().cast()) };
-    vm
-}
-
 
 pub fn show_keyboard(existing_value: &str, hint: &str) {
     warn!("Calling android_mobile_input::show_keyboard()");
@@ -154,4 +139,19 @@ pub extern "C" fn Java_org_cgc_main_FloatingInput_onSpecialKey(
 
     queue.push(event);
     queue.push(release);
+}
+
+pub fn get_android_app() -> AndroidApp {
+    bevy::android::ANDROID_APP.get().unwrap().clone()
+}
+pub fn get_raw_activity_global() -> *mut _jobject {
+    let android_app = get_android_app();
+
+    let raw_activity_global = android_app.activity_as_ptr() as jni::sys::jobject;
+    raw_activity_global
+}
+pub fn get_vm() -> JavaVM {
+    let android_app = get_android_app();
+    let vm = unsafe { jni::JavaVM::from_raw(android_app.vm_as_ptr().cast()) };
+    vm
 }

@@ -1,11 +1,11 @@
 {
     "rust-analyzer.cargo.extraEnv": {
         "AUTH_SERVER_URL": "http://localhost:55555",
-        // update the path to ndk and version as needed, I guess... without this, rust analyzer fails
-       // "CXX": "/home/user1/android-sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android35-clang++",
+        // update the path to ndk and version as needed, I guess... without this, rust analyzer on android target fails
+        // "CXX": "/home/user1/android-sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android35-clang++",
        // "CC": "/home/user1/android-sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android35-clang",
     },
-    //"rust-analyzer.cargo.target": "wasm32-unknown-unknown"
-    //"rust-analyzer.cargo.target": "aarch64-linux-android"
+  // "rust-analyzer.cargo.target": "wasm32-unknown-unknown"
+    //  "rust-analyzer.cargo.target": "aarch64-linux-android"
 
 }
