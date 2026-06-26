@@ -162,14 +162,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "84521a3cf562bc62942e294181d9eef17eb38ceb8c68677bc49f144e4c3d4f8d"
 
 [[package]]
-name = "android_mobile_input"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "jni 0.22.4",
-]
-
-[[package]]
 name = "android_system_properties"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2754,7 +2746,6 @@ dependencies = [
 name = "game_server_client"
 version = "0.1.0"
 dependencies = [
- "android_mobile_input",
  "auth_system_structs",
  "base64",
  "bevy",
@@ -2767,13 +2758,13 @@ dependencies = [
  "serde",
  "serde_json",
  "shared",
+ "soft_keyboard_input",
  "tokio",
  "tokio-tungstenite",
  "tracing",
  "url",
  "wasm-bindgen-futures",
  "web",
- "web_mobile_input",
 ]
 
 [[package]]
@@ -3594,7 +3585,6 @@ dependencies = [
 name = "launcher"
 version = "0.1.0"
 dependencies = [
- "android_mobile_input",
  "auth_system_structs",
  "bevy",
  "ehttp",
@@ -3734,7 +3724,6 @@ dependencies = [
 name = "main"
 version = "0.1.0"
 dependencies = [
- "android_mobile_input",
  "bevy",
  "dotenvy",
  "game_server_client",
@@ -3744,7 +3733,6 @@ dependencies = [
  "soft_keyboard_input",
  "startup",
  "web",
- "web_mobile_input",
 ]
 
 [[package]]
@@ -6286,15 +6274,6 @@ checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "web_mobile_input"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "web",
- "web-sys",
 ]
 
 [[package]]

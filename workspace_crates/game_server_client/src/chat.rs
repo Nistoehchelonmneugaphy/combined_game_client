@@ -1,9 +1,7 @@
 use std::collections::{HashMap, VecDeque};
 
 use bevy::prelude::*;
-use game_server_structs::websocket_communication::
-    ServerMessage
-;
+use game_server_structs::websocket_communication::ServerMessage;
 use shared::spawn_text_field;
 
 pub struct ChatPlugin;
@@ -173,12 +171,7 @@ pub fn handle_send_chat_message_button(
             continue;
         }
 
-        #[cfg(target_arch = "wasm32")]
-        {
-            if web::is_mobile() && web_mobile_input::is_keyboard_shown() {
-                web_mobile_input::hide_keyboard();
-            }
-        }
+        soft_keyboard_input::hide_soft_keyboard_if_needed();
 
         let message = form.chat_message.clone();
         debug!("Send msg");
@@ -194,37 +187,24 @@ pub fn handle_text_input(
     mut form: ResMut<ChatMessageForm>,
     mut evr: MessageReader<bevy::input::keyboard::KeyboardInput>,
     chat_message_field_interaction_query: Query<&Interaction, With<ChatMessageInput>>,
-    #[cfg(target_os = "android")] anywhere_else_interaction_query: Query<
-        &Interaction,
-        Without<ChatMessageInput>,
-    >,
+    anywhere_else_interaction_query: Query<&Interaction, Without<ChatMessageInput>>,
     mut chat_message_text: Query<&mut Text, With<ChatMessageText>>,
 ) {
     let chat_message_pressed = chat_message_field_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
-    #[cfg(target_os = "android")]
+
     let anywhere_else_pressed = anywhere_else_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
 
     if chat_message_pressed {
         form.focused = ChatMessageFormField::ChatMessage;
+        soft_keyboard_input::show_soft_keyboard_if_needed(&form.chat_message, "Chat message");
+    } else if anywhere_else_pressed {
+        soft_keyboard_input::hide_soft_keyboard_if_needed();
     }
-    #[cfg(target_arch = "wasm32")]
-    {
-        if web::is_mobile() && !web_mobile_input::is_keyboard_shown() && (chat_message_pressed) {
-            web_mobile_input::show_keyboard();
-        }
-    }
-    #[cfg(target_os = "android")]
-    {
-        if chat_message_pressed {
-            android_mobile_input::show_keyboard(&form.chat_message, "Chat message");
-        } else if anywhere_else_pressed {
-            android_mobile_input::hide_keyboard();
-        }
-    }
+
     for ev in evr.read() {
         if ev.state != bevy::input::ButtonState::Pressed {
             continue;
