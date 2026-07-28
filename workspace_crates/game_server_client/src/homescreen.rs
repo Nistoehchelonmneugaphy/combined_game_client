@@ -21,8 +21,8 @@ pub struct ExitQueueButton;
 #[derive(Message, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum InternalMessage {
     SendChatMessage { message: String },
-    EnterSoloQueue,
-    EnterCoopQueue,
+    EnterHunterQueue,
+    EnterSurvivorQueue,
     ExitQueue,
 }
 
@@ -58,15 +58,18 @@ pub fn process_internal_message(
                         content: message.to_string(),
                     },
                 });
-            }   
-            InternalMessage::EnterSoloQueue => {
-                debug!("InternalMessage::EnterSoloQueue");
             }
-            InternalMessage::EnterCoopQueue => {
-                debug!("InternalMessage::EnterCoopQueue");
+
+            InternalMessage::EnterHunterQueue => {
+                debug!("InternalMessage::EnterHunterQueue");
             }
+
+            InternalMessage::EnterSurvivorQueue => {
+                debug!("InternalMessage::EnterSurvivorQueue");
+            }
+
             InternalMessage::ExitQueue => {
-                  debug!("InternalMessage::ExitQueue");
+                debug!("InternalMessage::ExitQueue");
             }
         }
     }
@@ -171,7 +174,10 @@ fn spawn_queue_buttons(commands: &mut Commands) {
 pub fn queue_buttons_handler(
     mut event_writer: MessageWriter<InternalMessage>,
     hunter_interaction_q: Query<&Interaction, (Changed<Interaction>, With<EnterHunterQueueButton>)>,
-    survivor_interaction_q: Query<&Interaction, (Changed<Interaction>, With<EnterSurvivorQueueButton>)>,
+    survivor_interaction_q: Query<
+        &Interaction,
+        (Changed<Interaction>, With<EnterSurvivorQueueButton>),
+    >,
     exit_interaction_q: Query<&Interaction, (Changed<Interaction>, With<ExitQueueButton>)>,
     mut exit_button_q: Query<
         &mut Visibility,
@@ -222,7 +228,7 @@ pub fn queue_buttons_handler(
                 continue;
             }
             debug!("Entering solo queue");
-            event_writer.write(InternalMessage::EnterSoloQueue);
+            event_writer.write(InternalMessage::EnterSurvivorQueue);
             *in_queue = InQueue(true);
             set_buttons_visibility_based_on_if_in_queue(
                 in_queue.0,
@@ -237,7 +243,7 @@ pub fn queue_buttons_handler(
                 continue;
             }
             debug!("Entering coop queue");
-            event_writer.write(InternalMessage::EnterCoopQueue);
+            event_writer.write(InternalMessage::EnterHunterQueue);
             *in_queue = InQueue(true);
             set_buttons_visibility_based_on_if_in_queue(
                 in_queue.0,
