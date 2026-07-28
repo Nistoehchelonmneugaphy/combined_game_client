@@ -5,10 +5,8 @@ use game_server_structs::websocket_communication::{
 use shared::set_title;
 use tracing::instrument;
 
-use crate::{GameServerState, ServerCookie, chat, websocket_connection::GameServerConnection};
+use crate::{GameServerState, ServerCookie, chat, match_stuff::{InMatch, InQueue}, websocket_connection::GameServerConnection};
 
-#[derive(Resource, Clone)]
-pub struct InQueue(pub bool);
 #[derive(Component)]
 pub struct EnterHunterQueueButton;
 
@@ -39,7 +37,7 @@ pub fn receive_from_server(
 pub fn process_internal_message(
     cookie: Res<ServerCookie>,
     mut event_reader: MessageReader<InternalMessage>,
-    mut event_writer: MessageWriter<ClientMessage>,
+    mut client_message_writer: MessageWriter<ClientMessage>,
 ) {
     let cookie = match cookie.0.clone() {
         Some(c) => c,
@@ -52,7 +50,7 @@ pub fn process_internal_message(
         match msg {
             InternalMessage::SendChatMessage { message } => {
                 debug!("Send msg");
-                event_writer.write(ClientMessage {
+                client_message_writer.write(ClientMessage {
                     cookie: cookie.clone(),
                     content: ClientMessageContent::SendGlobalChatMessage {
                         content: message.to_string(),
@@ -62,10 +60,23 @@ pub fn process_internal_message(
 
             InternalMessage::EnterHunterQueue => {
                 debug!("InternalMessage::EnterHunterQueue");
+                client_message_writer.write(ClientMessage {
+                    cookie: cookie.clone(),
+                    content: ClientMessageContent::JoinMatchmaking {
+                        queue_type: game_server_structs::websocket_communication::QueueType::Hunter,
+                    },
+                });
             }
 
             InternalMessage::EnterSurvivorQueue => {
                 debug!("InternalMessage::EnterSurvivorQueue");
+                client_message_writer.write(ClientMessage {
+                    cookie: cookie.clone(),
+                    content: ClientMessageContent::JoinMatchmaking {
+                        queue_type:
+                            game_server_structs::websocket_communication::QueueType::Survivor,
+                    },
+                });
             }
 
             InternalMessage::ExitQueue => {
@@ -119,6 +130,7 @@ pub fn setup_homescreen_ui(
 fn spawn_queue_buttons(commands: &mut Commands) {
     debug!("Spawning queue buttons");
     commands.insert_resource(InQueue(false));
+    commands.insert_resource(InMatch(false));
     commands
         .spawn((
             DespawnOnExit(GameServerState::HomeScreen),

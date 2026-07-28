@@ -12,6 +12,7 @@ pub struct GameServerClientPlugin;
 mod homescreen;
 mod chat;
 mod websocket_connection;
+pub mod match_stuff;
 
 #[derive(SubStates, Default, Clone, Eq, PartialEq, Hash, Debug)]
 #[source(AppState = AppState::GameServer)]
@@ -49,7 +50,7 @@ impl Plugin for GameServerClientPlugin {
 
         app.add_systems(
             Update,
-            (receive_from_server, send_to_server, receive_chat_messages, queue_buttons_handler, process_internal_message).run_if(in_state(GameServerState::HomeScreen)),
+            (receive_from_server, send_to_server, receive_chat_messages, queue_buttons_handler, process_internal_message, match_stuff::match_found).run_if(in_state(GameServerState::HomeScreen)),
 
         );
         app.add_plugins(ChatPlugin);
