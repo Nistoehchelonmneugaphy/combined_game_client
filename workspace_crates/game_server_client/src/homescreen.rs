@@ -10,10 +10,10 @@ use crate::{GameServerState, ServerCookie, chat, websocket_connection::GameServe
 #[derive(Resource, Clone)]
 pub struct InQueue(pub bool);
 #[derive(Component)]
-pub struct EnterSoloQueueButton;
+pub struct EnterSeekerQueueButton;
 
 #[derive(Component)]
-pub struct EnterCoopQueueButton;
+pub struct EnterRunnerQueueButton;
 
 #[derive(Component)]
 pub struct ExitQueueButton;
@@ -131,7 +131,7 @@ fn spawn_queue_buttons(commands: &mut Commands) {
         .with_children(|p| {
             p.spawn((
                 DespawnOnExit(GameServerState::HomeScreen),
-                EnterSoloQueueButton,
+                EnterSeekerQueueButton,
                 Button,
                 Node {
                     padding: UiRect::axes(Val::Px(24.0), Val::Px(10.0)),
@@ -139,10 +139,11 @@ fn spawn_queue_buttons(commands: &mut Commands) {
                 },
                 BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
             ))
-            .with_child(Text::new("Queue solo"));
+            .with_child(Text::new("Queue as hunter"));
+
             p.spawn((
                 DespawnOnExit(GameServerState::HomeScreen),
-                EnterCoopQueueButton,
+                EnterRunnerQueueButton,
                 Button,
                 Node {
                     padding: UiRect::axes(Val::Px(24.0), Val::Px(10.0)),
@@ -150,7 +151,8 @@ fn spawn_queue_buttons(commands: &mut Commands) {
                 },
                 BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
             ))
-            .with_child(Text::new("Queue co-op"));
+            .with_child(Text::new("Queue as survivor"));
+
             p.spawn((
                 DespawnOnExit(GameServerState::HomeScreen),
                 Visibility::Hidden,
@@ -168,31 +170,31 @@ fn spawn_queue_buttons(commands: &mut Commands) {
 
 pub fn queue_buttons_handler(
     mut event_writer: MessageWriter<InternalMessage>,
-    solo_interaction_q: Query<&Interaction, (Changed<Interaction>, With<EnterSoloQueueButton>)>,
-    coop_interaction_q: Query<&Interaction, (Changed<Interaction>, With<EnterCoopQueueButton>)>,
+    solo_interaction_q: Query<&Interaction, (Changed<Interaction>, With<EnterSeekerQueueButton>)>,
+    coop_interaction_q: Query<&Interaction, (Changed<Interaction>, With<EnterRunnerQueueButton>)>,
     exit_interaction_q: Query<&Interaction, (Changed<Interaction>, With<ExitQueueButton>)>,
     mut exit_button_q: Query<
         &mut Visibility,
         (
             With<ExitQueueButton>,
-            Without<EnterSoloQueueButton>,
-            Without<EnterCoopQueueButton>,
+            Without<EnterSeekerQueueButton>,
+            Without<EnterRunnerQueueButton>,
         ),
     >,
     mut solo_button_q: Query<
         &mut Visibility,
         (
-            With<EnterSoloQueueButton>,
+            With<EnterSeekerQueueButton>,
             Without<ExitQueueButton>,
-            Without<EnterCoopQueueButton>,
+            Without<EnterRunnerQueueButton>,
         ),
     >,
     mut coop_button_q: Query<
         &mut Visibility,
         (
-            With<EnterCoopQueueButton>,
+            With<EnterRunnerQueueButton>,
             Without<ExitQueueButton>,
-            Without<EnterSoloQueueButton>,
+            Without<EnterSeekerQueueButton>,
         ),
     >,
     mut in_queue: ResMut<InQueue>,
@@ -255,24 +257,24 @@ fn set_buttons_visibility_based_on_if_in_queue(
         &mut Visibility,
         (
             With<ExitQueueButton>,
-            Without<EnterSoloQueueButton>,
-            Without<EnterCoopQueueButton>,
+            Without<EnterSeekerQueueButton>,
+            Without<EnterRunnerQueueButton>,
         ),
     >,
     solo_button_q: &mut Query<
         &mut Visibility,
         (
-            With<EnterSoloQueueButton>,
+            With<EnterSeekerQueueButton>,
             Without<ExitQueueButton>,
-            Without<EnterCoopQueueButton>,
+            Without<EnterRunnerQueueButton>,
         ),
     >,
     coop_button_q: &mut Query<
         &mut Visibility,
         (
-            With<EnterCoopQueueButton>,
+            With<EnterRunnerQueueButton>,
             Without<ExitQueueButton>,
-            Without<EnterSoloQueueButton>,
+            Without<EnterSeekerQueueButton>,
         ),
     >,
 ) {
