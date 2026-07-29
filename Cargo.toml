@@ -10,6 +10,9 @@ debug = false
 
 [workspace.dependencies]
 rustls = { version = "0.23.41", default-features = false }
+bevy = { version = "=0.19.0", features = [
+    "free_camera","debug", "serialize", "mp3",
+    ] }
 tokio = { version = "1.52.3", features = ["full"] }
 ehttp = "0.7.1"
 bevy_mod_reqwest = { git = "ssh://git@github.com/Aeroel/bevy_mod_reqwest.git", features = [ "json", "rustls-tls", "log" ] }
@@ -24,9 +27,7 @@ startup = { path = "workspace_crates/startup" }
 shared = { path = "workspace_crates/shared" }
 auth_system_structs = { git = "ssh://git@github.com/Aeroel/auth_system.git" }
 
-bevy = { version = "0.18", features = [
-    "free_camera","debug", "serialize", "mp3",
-    ] }
+
 bevy_renet = "4.0.1"
 bevy_rapier3d = "0.34.0"
 config = "0.15.24"

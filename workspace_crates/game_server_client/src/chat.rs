@@ -63,7 +63,7 @@ pub fn spawn_chat_history_ui(commands: &mut Commands) {
                 p.spawn((
                     Text::new("msg will be here"),
                     TextFont {
-                        font_size: 14.0,
+                        font_size: FontSize::Px(14.0),
                         ..default()
                     },
                     TextColor(Color::WHITE),
