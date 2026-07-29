@@ -28,8 +28,6 @@ shared = { path = "workspace_crates/shared" }
 auth_system_structs = { git = "ssh://git@github.com/Aeroel/auth_system.git" }
 
 
-bevy_renet = "4.0.1"
-bevy_rapier3d = "0.34.0"
 config = "0.15.24"
 dotenvy = "0.15.7"
 envy = "0.4.2"
