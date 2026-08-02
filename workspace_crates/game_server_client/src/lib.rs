@@ -62,7 +62,7 @@ fn setup_authentication_ui(mut commands: Commands, mut windows: Query<&mut Windo
     let launcher_title = "Authenticating...";
 
     if let Ok(mut window) = windows.single_mut() {
-        set_title(&mut *window, launcher_title);
+        set_title(&mut window, launcher_title);
         window.resolution.set(480.0, 320.0);
     };
 

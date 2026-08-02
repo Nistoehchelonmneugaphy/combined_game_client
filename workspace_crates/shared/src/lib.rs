@@ -16,6 +16,9 @@ pub struct AppConfig {
     pub auth_server_url: String,
     pub game_server_url: String,
     pub ws_game_server_url: String,
+    pub directly_join_a_match_on_startup: bool,
+    pub direct_match_address: String,
+    pub direct_match_token: String,
 }
 
 #[derive(Resource, Clone, Debug)]
@@ -29,6 +32,9 @@ pub struct AppConfigAsset {
     pub auth_server_url: String,
     pub game_server_url: String,
     pub ws_game_server_url: String,
+    pub directly_join_a_match_on_startup: bool,
+    pub direct_match_address: String,
+    pub direct_match_token: String,
 }
 
 #[derive(Resource)]

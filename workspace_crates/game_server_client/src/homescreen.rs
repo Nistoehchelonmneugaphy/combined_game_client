@@ -117,7 +117,7 @@ pub fn setup_homescreen_ui(
     let launcher_title = "Homescreen";
 
     if let Ok(mut window) = windows.single_mut() {
-        set_title(&mut *window, launcher_title);
+        set_title(&mut window, launcher_title);
         window.resolution.set(480.0, 320.0);
     };
 
@@ -183,6 +183,8 @@ fn spawn_queue_buttons(commands: &mut Commands) {
         });
 }
 
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::type_complexity)]
 pub fn queue_buttons_handler(
     mut event_writer: MessageWriter<InternalMessage>,
     hunter_interaction_q: Query<&Interaction, (Changed<Interaction>, With<EnterHunterQueueButton>)>,
@@ -269,6 +271,8 @@ pub fn queue_buttons_handler(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::type_complexity)]
 fn set_buttons_visibility_based_on_if_in_queue(
     in_queue: bool,
     exit_button_q: &mut Query<
@@ -307,12 +311,12 @@ fn set_buttons_visibility_based_on_if_in_queue(
         Visibility::Visible
     };
     for mut vis in exit_button_q {
-        *vis = exit_button_visibility.clone();
+        *vis = exit_button_visibility;
     }
     for mut vis in solo_button_q {
-        *vis = enter_queue_buttons_visibility.clone();
+        *vis = enter_queue_buttons_visibility;
     }
     for mut vis in coop_button_q {
-        *vis = enter_queue_buttons_visibility.clone();
+        *vis = enter_queue_buttons_visibility;
     }
 }

@@ -30,11 +30,17 @@ fn check_loaded(
             auth_server_url,
             game_server_url,
             ws_game_server_url,
+            directly_join_a_match_on_startup,
+            direct_match_address,
+            direct_match_token,
         } = config;
         let app_config = AppConfig {
             auth_server_url: auth_server_url.to_string(),
             game_server_url: game_server_url.to_string(),
             ws_game_server_url: ws_game_server_url.to_string(),
+            directly_join_a_match_on_startup: *directly_join_a_match_on_startup,
+            direct_match_address: direct_match_address.to_string(),
+            direct_match_token: direct_match_token.to_string(),
         };
         commands.insert_resource(app_config);
         debug!("Switching from AppState::Startup to AppState::Launcher");
@@ -68,5 +74,3 @@ impl AssetLoader for AppConfigJsonLoader {
         &["json"]
     }
 }
-
-
