@@ -42,7 +42,12 @@ fn check_loaded(
             direct_match_address: direct_match_address.to_string(),
             direct_match_token: direct_match_token.to_string(),
         };
-        commands.insert_resource(app_config);
+        commands.insert_resource(app_config.clone());
+        if app_config.directly_join_a_match_on_startup {
+            debug!("Switching to match state directly after startup due to config.json directive.");
+            next_state.set(AppState::Match);
+            return;
+        }
         debug!("Switching from AppState::Startup to AppState::Launcher");
         next_state.set(AppState::Launcher);
     }

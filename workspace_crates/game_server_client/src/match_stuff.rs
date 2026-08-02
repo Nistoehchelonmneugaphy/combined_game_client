@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use game_server_structs::websocket_communication::ServerMessage;
+use shared::AppState;
 #[derive(Resource, Clone)]
 pub struct InQueue(pub bool);
 #[derive(Resource, Clone)]
@@ -22,4 +23,21 @@ pub fn match_found(mut in_match: ResMut<InMatch>, mut server_events: MessageRead
         *in_match = InMatch(true);
         break;
     }
+}
+
+
+pub struct MatchPlugin;
+
+impl Plugin for MatchPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(OnEnter(AppState::Match), init_match)
+            .add_systems(Update, update_match.run_if(in_state(AppState::Match)));
+    }
+}
+pub fn init_match() {
+
+}
+
+pub fn update_match() {
+    
 }
