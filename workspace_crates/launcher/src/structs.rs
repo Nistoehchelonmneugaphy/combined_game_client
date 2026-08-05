@@ -9,4 +9,5 @@ pub enum LauncherState {
     #[default]
     Login,
     ServerSelect,
+    DirectMatchJoinMenu,
 }
