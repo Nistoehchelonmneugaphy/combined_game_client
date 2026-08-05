@@ -74,6 +74,7 @@ pub fn add_launcher_login_systems(app: &mut App) {
             handle_login_button,
             poll_login_response,
             handle_server_connect,
+            handle_open_direct_menu_button,
         )
             .chain()
             .run_if(in_state(LauncherState::Login)),
@@ -132,9 +133,8 @@ pub fn setup_launcher_login_ui(
                 LauncherState::Login,
             );
 
-
             // A button. On press: Shows menu to directly join match (mainly used for more convenient development to avoid annoying logins and having to start auth and game servers)
-              p.spawn((
+            p.spawn((
                 DespawnOnExit(LauncherState::Login),
                 JoinMatchDirectlyMenuButton,
                 Button,
@@ -145,7 +145,6 @@ pub fn setup_launcher_login_ui(
                 BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
             ))
             .with_child(Text::new("Direct match join"));
-
 
             // Login button
             p.spawn((
@@ -291,6 +290,17 @@ pub fn blink_cursor(
     }
 }
 
+pub fn handle_open_direct_menu_button(
+    mut next_state: ResMut<NextState<LauncherState>>,
+    interaction_q: Query<&Interaction, (Changed<Interaction>, With<JoinMatchDirectlyMenuButton>)>,
+) {
+    for interaction in &interaction_q {
+        if *interaction != Interaction::Pressed {
+            continue;
+        }
+        next_state.set(LauncherState::DirectMatchJoinMenu);
+    }
+}
 pub fn handle_login_button(
     asset_server: Res<AssetServer>,
     mut commands: Commands,
