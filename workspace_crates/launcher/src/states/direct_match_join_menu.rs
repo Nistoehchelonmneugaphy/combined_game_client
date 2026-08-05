@@ -3,7 +3,6 @@ use shared::{AppConfig, CursorBlink, set_title, spawn_text_field};
 
 use crate::structs::LauncherState;
 
-
 #[derive(Resource, Default)]
 pub struct DirectForm {
     pub address: String,
@@ -34,18 +33,14 @@ pub struct TokenText;
 
 #[derive(Component)]
 pub struct TokenInputFieldCursor;
+
 #[derive(Component)]
 pub struct ConnectButton;
 
+#[derive(Component)]
+pub struct GoBackToLoginMenuButton;
 
-
-
-
-
-pub fn setup_direct_match_join_menu_ui(
-    mut commands: Commands,
-    mut windows: Query<&mut Window>,
-) {
+pub fn setup_direct_match_join_menu_ui(mut commands: Commands, mut windows: Query<&mut Window>) {
     let launcher_title = "Launcher";
 
     if let Ok(mut window) = windows.single_mut() {
@@ -53,7 +48,6 @@ pub fn setup_direct_match_join_menu_ui(
         window.resolution.set(480.0, 320.0);
     };
 
-   
     commands.init_resource::<DirectForm>();
     commands.init_resource::<CursorBlink>();
 
@@ -89,9 +83,6 @@ pub fn setup_direct_match_join_menu_ui(
                 LauncherState::Login,
             );
 
-
-            
-
             p.spawn((
                 ConnectButton,
                 Button,
@@ -102,10 +93,18 @@ pub fn setup_direct_match_join_menu_ui(
                 BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
             ))
             .with_child(Text::new("Connect!"));
-
+            p.spawn((
+                GoBackToLoginMenuButton,
+                Button,
+                Node {
+                    padding: UiRect::axes(Val::Px(4.0), Val::Px(1.0)),
+                    ..default()
+                },
+                BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
+            ))
+            .with_child(Text::new("<- Go back to login menu"));
         });
 }
-
 
 pub fn add_launcher_direct_match_join_systems(app: &mut App) {
     app.add_systems(
@@ -114,12 +113,43 @@ pub fn add_launcher_direct_match_join_systems(app: &mut App) {
             handle_text_input,
             blink_cursor,
             handle_connect_button,
+            handle_back_to_login_menu_button,
         )
             .chain()
             .run_if(in_state(LauncherState::DirectMatchJoinMenu)),
     );
 }
 
+pub fn handle_connect_button(
+    _commands: Commands,
+    interaction_q: Query<&Interaction, (Changed<Interaction>, With<ConnectButton>)>,
+    form: Res<DirectForm>,
+    config: Res<AppConfig>,
+) {
+    for interaction in &interaction_q {
+        let _config = config.clone();
+        if *interaction != Interaction::Pressed {
+            continue;
+        }
+
+        soft_keyboard_input::hide_soft_keyboard_if_needed();
+
+        let (address, token) = (form.address.clone(), form.token.clone());
+        debug!("Addres: {address}, token: {token}");
+    }
+}
+
+pub fn handle_back_to_login_menu_button(
+    interaction_q: Query<&Interaction, (Changed<Interaction>, With<GoBackToLoginMenuButton>)>,
+    mut next_state: ResMut<NextState<LauncherState>>,
+) {
+    for interaction in &interaction_q {
+        if *interaction != Interaction::Pressed {
+            continue;
+        }
+        next_state.set(LauncherState::Login);
+    }
+}
 
 pub fn handle_text_input(
     mut form: ResMut<DirectForm>,
@@ -190,10 +220,6 @@ pub fn handle_text_input(
     }
 }
 
-
-
-
-
 pub fn blink_cursor(
     time: Res<Time>,
     mut blink: ResMut<CursorBlink>,
@@ -235,26 +261,5 @@ pub fn blink_cursor(
             Visibility::Hidden => Visibility::Visible,
             _ => Visibility::Hidden,
         };
-    }
-}
-
-
-
-pub fn handle_connect_button(
-    _commands: Commands,
-    interaction_q: Query<&Interaction, (Changed<Interaction>, With<ConnectButton>)>,
-    form: Res<DirectForm>,
-    config: Res<AppConfig>,
-) {
-    for interaction in &interaction_q {
-        let _config = config.clone();
-        if *interaction != Interaction::Pressed {
-            continue;
-        }
-
-        soft_keyboard_input::hide_soft_keyboard_if_needed();
-
-        let (address, token) = (form.address.clone(), form.token.clone());
-        debug!("Addres: {address}, token: {token}");
     }
 }
