@@ -186,7 +186,7 @@ pub fn handle_text_input(
         text.0 = form.address.clone();
     }
     if let Ok(mut text) = token_text.single_mut() {
-        text.0 = "*".repeat(form.token.len());
+        text.0 = form.token.clone();
     }
 }
 
