@@ -97,7 +97,7 @@ pub fn setup_direct_match_join_menu_ui(mut commands: Commands, mut windows: Quer
                 GoBackToLoginMenuButton,
                 Button,
                 Node {
-                    padding: UiRect::axes(Val::Px(4.0), Val::Px(1.0)),
+                    padding: UiRect::axes(Val::Px(4.0), Val::Px(10.0)),
                     ..default()
                 },
                 BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
