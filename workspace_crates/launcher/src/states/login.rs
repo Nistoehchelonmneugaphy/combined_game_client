@@ -45,6 +45,8 @@ pub struct UsernameText;
 
 #[derive(Component)]
 pub struct LoginButton;
+#[derive(Component)]
+pub struct JoinMatchDirectlyMenuButton;
 
 #[derive(Component)]
 pub struct ErrorLabel;
@@ -129,6 +131,21 @@ pub fn setup_launcher_login_ui(
                 PasswordInputFieldCursor,
                 LauncherState::Login,
             );
+
+
+            // A button. On press: Shows menu to directly join match (mainly used for more convenient development to avoid annoying logins and having to start auth and game servers)
+              p.spawn((
+                DespawnOnExit(LauncherState::Login),
+                JoinMatchDirectlyMenuButton,
+                Button,
+                Node {
+                    padding: UiRect::axes(Val::Px(14.0), Val::Px(15.0)),
+                    ..default()
+                },
+                BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
+            ))
+            .with_child(Text::new("Direct match join"));
+
 
             // Login button
             p.spawn((
