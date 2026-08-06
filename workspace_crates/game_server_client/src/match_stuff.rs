@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use game_server_structs::websocket_communication::ServerMessage;
-use shared::AppState;
+use shared::{AppState, MatchStateResource, set_title};
 #[derive(Resource, Clone)]
 pub struct InQueue(pub bool);
 #[derive(Resource, Clone)]
@@ -25,7 +25,6 @@ pub fn match_found(mut in_match: ResMut<InMatch>, mut server_events: MessageRead
     }
 }
 
-
 pub struct MatchPlugin;
 
 impl Plugin for MatchPlugin {
@@ -34,10 +33,21 @@ impl Plugin for MatchPlugin {
             .add_systems(Update, update_match.run_if(in_state(AppState::Match)));
     }
 }
-pub fn init_match() {
-
+pub fn init_match(mut windows: Query<&mut Window>, connection_info: Res<MatchStateResource>) {
+    if let Ok(mut window) = windows.single_mut() {
+        set_title(&mut window, "In Match");
+        window.resolution.set(960.0, 640.0);
+    };
+    match &*connection_info {
+        MatchStateResource::NotInMatch => debug!("Not in match"),
+        MatchStateResource::WantsToConnect {
+            address,
+            player_token,
+        } => debug!(
+            "Init_match: connecting to address: {} using player token: {}",
+            address.0, player_token.0
+        ),
+    }
 }
 
-pub fn update_match() {
-    
-}
+pub fn update_match() {}

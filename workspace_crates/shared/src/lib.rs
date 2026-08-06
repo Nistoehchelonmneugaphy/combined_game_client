@@ -24,6 +24,22 @@ pub struct Session {
     pub user_id: String,
 }
 
+#[derive(Resource, Clone, Debug)]
+pub enum MatchStateResource {
+    NotInMatch,
+    WantsToConnect {
+        address: MatchServerAddress,
+        player_token: MatchPlayerToken,
+    }
+}
+
+
+#[derive(Clone, Debug)]
+pub struct MatchServerAddress(pub String);
+
+#[derive(Clone, Debug)]
+pub struct MatchPlayerToken(pub String);
+
 #[derive(Deserialize, Asset, TypePath, Debug)]
 pub struct AppConfigAsset {
     pub auth_server_url: String,

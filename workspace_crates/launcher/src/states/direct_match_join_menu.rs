@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use shared::{AppConfig, CursorBlink, set_title, spawn_text_field};
+use shared::{AppConfig, AppState, CursorBlink, MatchStateResource, MatchPlayerToken, MatchServerAddress, set_title, spawn_text_field};
 
 use crate::structs::LauncherState;
 
@@ -121,10 +121,11 @@ pub fn add_launcher_direct_match_join_systems(app: &mut App) {
 }
 
 pub fn handle_connect_button(
-    _commands: Commands,
+    mut commands: Commands,
     interaction_q: Query<&Interaction, (Changed<Interaction>, With<ConnectButton>)>,
     form: Res<DirectForm>,
     config: Res<AppConfig>,
+    mut next_state: ResMut<NextState<AppState>>,
 ) {
     for interaction in &interaction_q {
         let _config = config.clone();
@@ -136,6 +137,9 @@ pub fn handle_connect_button(
 
         let (address, token) = (form.address.clone(), form.token.clone());
         debug!("Addres: {address}, token: {token}");
+        commands.insert_resource(MatchStateResource::WantsToConnect { address: MatchServerAddress(address), player_token: MatchPlayerToken(token) });
+        next_state.set(AppState::Match);
+        
     }
 }
 

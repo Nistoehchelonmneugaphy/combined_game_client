@@ -1,6 +1,7 @@
 use bevy::log::LogPlugin;
 use bevy::{prelude::*, window::WindowResolution};
 use game_server_client::GameServerClientPlugin;
+use game_server_client::match_stuff::MatchPlugin;
 use launcher::LauncherPlugin;
 use shared::AppState;
 use soft_keyboard_input::SoftKeyboardInputPlugin;
@@ -73,7 +74,7 @@ pub fn main() {
             .set(asset_server_plugin_config),
     )
     .init_state::<AppState>()
-    .add_plugins((StartupPlugin, LauncherPlugin, GameServerClientPlugin));
+    .add_plugins((StartupPlugin, LauncherPlugin, GameServerClientPlugin, MatchPlugin));
     app.run();
 }
 
