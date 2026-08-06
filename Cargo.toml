@@ -13,6 +13,8 @@ rustls = { version = "0.23.42", default-features = false }
 bevy = { version = "0.19.0", features = [
     "free_camera","debug", "serialize", "mp3",
     ] }
+
+
 tokio = { version = "1.53.1", features = ["full"] }
 ehttp = "0.7.1"
 bevy_mod_reqwest = { git = "ssh://git@github.com/Aeroel/bevy_mod_reqwest.git", features = [ "json", "rustls-tls", "log" ] }
