@@ -23,6 +23,7 @@ serde_json = "1.0.151"
 launcher = { path = "workspace_crates/launcher" }
 game_server_client = { path = "workspace_crates/game_server_client" }
 game_server_structs = { git = "ssh://git@github.com/Aeroel/game_server.git" }
+match_client = { git = "ssh://git@github.com/Aeroel/match_system.git" }
 soft_keyboard_input = { path = "workspace_crates/soft_keyboard_input" }
 web = { path = "workspace_crates/web" }
 startup = { path = "workspace_crates/startup" }

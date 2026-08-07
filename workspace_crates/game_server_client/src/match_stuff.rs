@@ -29,11 +29,11 @@ pub struct MatchPlugin;
 
 impl Plugin for MatchPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(AppState::Match), init_match)
+        app.add_systems(OnEnter(AppState::ConnectingToMatch), connect_to_match)
             .add_systems(Update, update_match.run_if(in_state(AppState::Match)));
     }
 }
-pub fn init_match(mut windows: Query<&mut Window>, connection_info: Res<MatchStateResource>) {
+pub fn connect_to_match(mut windows: Query<&mut Window>, connection_info: Res<MatchStateResource>) {
     if let Ok(mut window) = windows.single_mut() {
         set_title(&mut window, "In Match");
         window.resolution.set(960.0, 640.0);
@@ -43,10 +43,13 @@ pub fn init_match(mut windows: Query<&mut Window>, connection_info: Res<MatchSta
         MatchStateResource::WantsToConnect {
             address,
             player_token,
-        } => debug!(
-            "Init_match: connecting to address: {} using player token: {}",
-            address.0, player_token.0
-        ),
+        } => {
+            debug!(
+                "Init_match: connecting to address: {} using player token: {}",
+                address.0, player_token.0
+            );
+           // match_client::
+        }
     }
 }
 

@@ -138,7 +138,7 @@ pub fn handle_connect_button(
         let (address, token) = (form.address.clone(), form.token.clone());
         debug!("Addres: {address}, token: {token}");
         commands.insert_resource(MatchStateResource::WantsToConnect { address: MatchServerAddress(address), player_token: MatchPlayerToken(token) });
-        next_state.set(AppState::Match);
+        next_state.set(AppState::ConnectingToMatch);
         
     }
 }

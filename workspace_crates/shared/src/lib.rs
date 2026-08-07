@@ -8,6 +8,7 @@ pub enum AppState {
     Startup,
     Launcher,
     GameServer,
+    ConnectingToMatch,
     Match,
 }
 
