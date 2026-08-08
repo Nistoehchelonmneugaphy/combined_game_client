@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::{css::DARK_GREY, tailwind::SLATE_300}, prelude::*, text::{EditableText, TextCursorStyle}};
 use shared::{AppConfig, AppState, CursorBlink, MatchStateResource, MatchPlayerToken, MatchServerAddress, set_title, spawn_text_field};
 
 use crate::structs::LauncherState;
@@ -50,6 +50,29 @@ pub fn setup_direct_match_join_menu_ui(mut commands: Commands, mut windows: Quer
 
     commands.init_resource::<DirectForm>();
     commands.init_resource::<CursorBlink>();
+
+let _edi_te = commands
+        .spawn((
+            Node {
+                border: px(2).all(),
+                ..Default::default()
+            },
+            BorderColor::from(Color::from(SLATE_300)),
+            Name::new( "Whatever" ),
+            EditableText {
+                visible_width: Some(10.),
+                allow_newlines: false,
+                ..Default::default()
+            },
+            TextLayout::no_wrap(),
+            TextFont {
+                font_size: FontSize::Px(40.0),
+                ..default()
+            },
+            TextCursorStyle::default(),
+            BackgroundColor(DARK_GREY.into()),
+        ))
+        .id();
 
     // Root
     commands
@@ -167,6 +190,7 @@ pub fn handle_text_input(
     mut address_text: Query<&mut Text, (With<AddressText>, Without<TokenText>)>,
     mut token_text: Query<&mut Text, (With<TokenText>, Without<AddressText>)>,
 ) {
+
     let address_pressed = address_field_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
