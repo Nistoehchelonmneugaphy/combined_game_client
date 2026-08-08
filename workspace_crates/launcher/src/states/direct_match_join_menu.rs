@@ -1,28 +1,13 @@
 use bevy::{
-    color::palettes::{css::DARK_GREY, tailwind::SLATE_300},
-    input_focus::InputFocus,
     prelude::*,
     text::{EditableText, TextCursorStyle},
 };
 use shared::{
-    AppConfig, AppState, CursorBlink, MatchPlayerToken, MatchServerAddress, MatchStateResource,
-    set_title,
+    AppConfig, AppState, MatchPlayerToken, MatchServerAddress, MatchStateResource, set_title,
 };
 
 use crate::structs::LauncherState;
 
-#[derive(Resource, Default)]
-pub struct DirectForm {
-    pub address: String,
-    pub token: String,
-    pub focused: FormField,
-}
-#[derive(Default, PartialEq)]
-pub enum FormField {
-    #[default]
-    Address,
-    Token,
-}
 
 #[derive(Component)]
 pub struct AddressInput;
@@ -55,8 +40,6 @@ pub fn setup_direct_match_join_menu_ui(mut commands: Commands, mut windows: Quer
         set_title(&mut window, launcher_title);
         window.resolution.set(480.0, 320.0);
     };
-
-    commands.init_resource::<DirectForm>();
 
     // Root
     commands
@@ -127,16 +110,27 @@ pub fn add_launcher_direct_match_join_systems(app: &mut App) {
     );
 }
 
+pub fn get_string_value<M, W>(query: &mut Query<(&mut EditableText, &M), Without<W>>) -> String
+where
+    M: Component,
+    W: Component,
+{
+    {
+        if let Ok((text_input, _)) = query.single_mut() {
+            text_input.value().to_string()
+        } else {
+            "failed".to_string()
+        }
+    }
+}
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn handle_connect_button(
     mut commands: Commands,
     interaction_q: Query<&Interaction, (Changed<Interaction>, With<ConnectButton>)>,
-    form: Res<DirectForm>,
     config: Res<AppConfig>,
     mut next_state: ResMut<NextState<AppState>>,
     mut address_text: Query<(&mut EditableText, &AddressInput), Without<TokenInput>>,
     mut token_text: Query<(&mut EditableText, &TokenInput), Without<AddressInput>>,
-    input_focus: Res<InputFocus>,
 ) {
     for interaction in &interaction_q {
         let _config = config.clone();
@@ -146,23 +140,9 @@ pub fn handle_connect_button(
 
         soft_keyboard_input::hide_soft_keyboard_if_needed();
 
-        let address = {
-            if  let Ok((mut text_input, name)) = address_text.single_mut()
-            {
-                text_input.value().to_string()
-            } else {
-                "failed".to_string()
-            }
-        };
-        let token = {
-            if 
-                 let Ok((mut text_input, name)) = token_text.single_mut()
-            {
-                text_input.value().to_string()
-            } else {
-                "failed".to_string()
-            }
-        };
+        let address = get_string_value(&mut address_text);
+        let token = get_string_value(&mut token_text);
+
         debug!("Address: {address}, token: {token}");
         commands.insert_resource(MatchStateResource::WantsToConnect {
             address: MatchServerAddress(address),
@@ -185,16 +165,14 @@ pub fn handle_back_to_login_menu_button(
 }
 
 pub fn handle_text_input(
-    mut form: ResMut<DirectForm>,
-    mut evr: MessageReader<bevy::input::keyboard::KeyboardInput>,
+    mut address_text: Query<(&mut EditableText, &AddressInput), Without<TokenInput>>,
+    mut token_text: Query<(&mut EditableText, &TokenInput), Without<AddressInput>>,
     address_field_interaction_query: Query<&Interaction, With<AddressInput>>,
     token_field_interaction_query: Query<&Interaction, With<TokenInput>>,
     anywhere_else_interaction_query: Query<
         &Interaction,
         (Without<AddressInput>, Without<TokenInput>),
     >,
-    mut address_text: Query<(&mut EditableText, &AddressInput), (Without<TokenInput>)>,
-    mut token_text: Query<(&mut EditableText, &TokenInput), (Without<AddressInput>)>,
 ) {
     let address_pressed = address_field_interaction_query
         .single()
@@ -207,41 +185,11 @@ pub fn handle_text_input(
         .is_ok_and(|i| *i == Interaction::Pressed);
 
     if address_pressed {
-        form.focused = FormField::Address;
-        soft_keyboard_input::show_soft_keyboard_if_needed(&form.address, "Address");
+        soft_keyboard_input::show_soft_keyboard_if_needed(&get_string_value(&mut address_text), "Address");
     } else if token_pressed {
-        form.focused = FormField::Token;
-        soft_keyboard_input::show_soft_keyboard_if_needed(&form.token, "Token");
+        soft_keyboard_input::show_soft_keyboard_if_needed(&get_string_value(&mut token_text), "Token");
     } else if anywhere_else_pressed {
         soft_keyboard_input::hide_soft_keyboard_if_needed();
-    }
-
-    for ev in evr.read() {
-        if ev.state != bevy::input::ButtonState::Pressed {
-            continue;
-        }
-        if ev.logical_key == bevy::input::keyboard::Key::Backspace {
-            let target = match form.focused {
-                FormField::Address => &mut form.address,
-                FormField::Token => &mut form.token,
-            };
-            target.pop();
-            continue;
-        }
-
-        // do not want to put "enter" into the text fields
-        if ev.logical_key == bevy::input::keyboard::Key::Enter {
-            continue;
-        }
-
-        // Use the `text` field for printable characters
-        if let Some(ref s) = ev.text {
-            let target = match form.focused {
-                FormField::Address => &mut form.address,
-                FormField::Token => &mut form.token,
-            };
-            target.push_str(s);
-        }
     }
 }
 
