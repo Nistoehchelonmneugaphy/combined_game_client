@@ -1,5 +1,13 @@
-use bevy::{color::palettes::{css::DARK_GREY, tailwind::SLATE_300}, prelude::*, text::{EditableText, TextCursorStyle}};
-use shared::{AppConfig, AppState, CursorBlink, MatchStateResource, MatchPlayerToken, MatchServerAddress, set_title, spawn_text_field};
+use bevy::{
+    color::palettes::{css::DARK_GREY, tailwind::SLATE_300},
+    input_focus::InputFocus,
+    prelude::*,
+    text::{EditableText, TextCursorStyle},
+};
+use shared::{
+    AppConfig, AppState, CursorBlink, MatchPlayerToken, MatchServerAddress, MatchStateResource,
+    set_title,
+};
 
 use crate::structs::LauncherState;
 
@@ -49,30 +57,6 @@ pub fn setup_direct_match_join_menu_ui(mut commands: Commands, mut windows: Quer
     };
 
     commands.init_resource::<DirectForm>();
-    commands.init_resource::<CursorBlink>();
-
-let _edi_te = commands
-        .spawn((
-            Node {
-                border: px(2).all(),
-                ..Default::default()
-            },
-            BorderColor::from(Color::from(SLATE_300)),
-            Name::new( "Whatever" ),
-            EditableText {
-                visible_width: Some(10.),
-                allow_newlines: false,
-                ..Default::default()
-            },
-            TextLayout::no_wrap(),
-            TextFont {
-                font_size: FontSize::Px(40.0),
-                ..default()
-            },
-            TextCursorStyle::default(),
-            BackgroundColor(DARK_GREY.into()),
-        ))
-        .id();
 
     // Root
     commands
@@ -89,7 +73,7 @@ let _edi_te = commands
             },
         ))
         .with_children(|p| {
-            spawn_text_field(
+            spawn_text_field_editable_text(
                 p,
                 "Address",
                 AddressInput,
@@ -97,7 +81,7 @@ let _edi_te = commands
                 AddressInputFieldCursor,
                 LauncherState::Login,
             );
-            spawn_text_field(
+            spawn_text_field_editable_text(
                 p,
                 "Token",
                 TokenInput,
@@ -116,6 +100,7 @@ let _edi_te = commands
                 BackgroundColor(Color::srgb(0.2, 0.6, 1.0)),
             ))
             .with_child(Text::new("Connect!"));
+
             p.spawn((
                 GoBackToLoginMenuButton,
                 Button,
@@ -134,7 +119,6 @@ pub fn add_launcher_direct_match_join_systems(app: &mut App) {
         Update,
         (
             handle_text_input,
-            blink_cursor,
             handle_connect_button,
             handle_back_to_login_menu_button,
         )
@@ -143,12 +127,16 @@ pub fn add_launcher_direct_match_join_systems(app: &mut App) {
     );
 }
 
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn handle_connect_button(
     mut commands: Commands,
     interaction_q: Query<&Interaction, (Changed<Interaction>, With<ConnectButton>)>,
     form: Res<DirectForm>,
     config: Res<AppConfig>,
     mut next_state: ResMut<NextState<AppState>>,
+    mut address_text: Query<(&mut EditableText, &AddressInput), Without<TokenInput>>,
+    mut token_text: Query<(&mut EditableText, &TokenInput), Without<AddressInput>>,
+    input_focus: Res<InputFocus>,
 ) {
     for interaction in &interaction_q {
         let _config = config.clone();
@@ -158,11 +146,29 @@ pub fn handle_connect_button(
 
         soft_keyboard_input::hide_soft_keyboard_if_needed();
 
-        let (address, token) = (form.address.clone(), form.token.clone());
-        debug!("Addres: {address}, token: {token}");
-        commands.insert_resource(MatchStateResource::WantsToConnect { address: MatchServerAddress(address), player_token: MatchPlayerToken(token) });
+        let address = {
+            if  let Ok((mut text_input, name)) = address_text.single_mut()
+            {
+                text_input.value().to_string()
+            } else {
+                "failed".to_string()
+            }
+        };
+        let token = {
+            if 
+                 let Ok((mut text_input, name)) = token_text.single_mut()
+            {
+                text_input.value().to_string()
+            } else {
+                "failed".to_string()
+            }
+        };
+        debug!("Address: {address}, token: {token}");
+        commands.insert_resource(MatchStateResource::WantsToConnect {
+            address: MatchServerAddress(address),
+            player_token: MatchPlayerToken(token),
+        });
         next_state.set(AppState::ConnectingToMatch);
-        
     }
 }
 
@@ -187,10 +193,9 @@ pub fn handle_text_input(
         &Interaction,
         (Without<AddressInput>, Without<TokenInput>),
     >,
-    mut address_text: Query<&mut Text, (With<AddressText>, Without<TokenText>)>,
-    mut token_text: Query<&mut Text, (With<TokenText>, Without<AddressText>)>,
+    mut address_text: Query<(&mut EditableText, &AddressInput), (Without<TokenInput>)>,
+    mut token_text: Query<(&mut EditableText, &TokenInput), (Without<AddressInput>)>,
 ) {
-
     let address_pressed = address_field_interaction_query
         .single()
         .is_ok_and(|i| *i == Interaction::Pressed);
@@ -238,56 +243,60 @@ pub fn handle_text_input(
             target.push_str(s);
         }
     }
-
-    // Sync to UI - now these queries will actually find the entities
-    if let Ok(mut text) = address_text.single_mut() {
-        text.0 = form.address.clone();
-    }
-    if let Ok(mut text) = token_text.single_mut() {
-        text.0 = form.token.clone();
-    }
 }
 
-pub fn blink_cursor(
-    time: Res<Time>,
-    mut blink: ResMut<CursorBlink>,
-    form: Res<DirectForm>,
-    mut address_cursor: Query<
-        &mut Visibility,
-        (
-            With<AddressInputFieldCursor>,
-            Without<TokenInputFieldCursor>,
-        ),
-    >,
-    mut token_cursor: Query<
-        &mut Visibility,
-        (
-            With<TokenInputFieldCursor>,
-            Without<AddressInputFieldCursor>,
-        ),
-    >,
+pub fn spawn_text_field_editable_text<M: Bundle, T: Bundle, C: Bundle, S: States>(
+    parent: &mut ChildSpawnerCommands,
+    label: &str,
+    container_marker: M,
+    _text_marker: T,
+    cursor_marker: C,
+    state_despawn: S,
 ) {
-    blink.0.tick(time.delta());
+    parent
+        .spawn((
+            DespawnOnExit(state_despawn),
+            Node {
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                row_gap: Val::Px(4.0),
+                ..default()
+            },
+        ))
+        .with_children(|col| {
+            col.spawn(Text::new(label));
 
-    let (mut active, mut inactive) = match form.focused {
-        FormField::Address => (
-            address_cursor.single_mut().unwrap(),
-            token_cursor.single_mut().unwrap(),
-        ),
-        FormField::Token => (
-            token_cursor.single_mut().unwrap(),
-            address_cursor.single_mut().unwrap(),
-        ),
-    };
-
-    // Inactive field cursor always hidden
-    *inactive = Visibility::Hidden;
-
-    // Active field cursor blinks
-    if blink.0.just_finished() {
-        *active = match *active {
-            Visibility::Hidden => Visibility::Visible,
-            _ => Visibility::Hidden,
-        };
-    }
+            col.spawn((
+                container_marker,
+                EditableText {
+                    visible_width: Some(10.),
+                    allow_newlines: false,
+                    ..Default::default()
+                },
+                Node {
+                    width: Val::Px(280.0),
+                    height: Val::Px(36.0),
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::Center,
+                    border: UiRect::all(Val::Px(1.0)),
+                    padding: UiRect::axes(Val::Px(8.0), Val::Px(4.0)),
+                    ..default()
+                },
+                TextCursorStyle::default(),
+                BorderColor::all(Color::srgb(0.5, 0.5, 0.5)),
+                BackgroundColor(Color::srgb(0.1, 0.1, 0.1)),
+            ))
+            .with_children(|row| {
+                row.spawn((
+                    cursor_marker,
+                    Node {
+                        width: Val::Px(2.0),
+                        height: Val::Px(18.0),
+                        ..default()
+                    },
+                    BackgroundColor(Color::WHITE),
+                    Visibility::Hidden, // starts hidden
+                ));
+            });
+        });
 }
