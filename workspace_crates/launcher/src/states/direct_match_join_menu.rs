@@ -193,6 +193,8 @@ pub fn handle_text_input(
     }
 }
 
+
+// I think I will replace the old shared version with this one later on
 pub fn spawn_text_field_editable_text<M: Bundle, T: Bundle, C: Bundle, S: States>(
     parent: &mut ChildSpawnerCommands,
     label: &str,
