@@ -34,10 +34,10 @@ pub struct ConnectButton;
 pub struct GoBackToLoginMenuButton;
 
 pub fn setup_direct_match_join_menu_ui(mut commands: Commands, mut windows: Query<&mut Window>) {
-    let launcher_title = "Directly Join A Match";
+    let window_title = "Directly Join A Match";
 
     if let Ok(mut window) = windows.single_mut() {
-        set_title(&mut window, launcher_title);
+        set_title(&mut window, window_title);
         window.resolution.set(480.0, 320.0);
     };
 
