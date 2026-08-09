@@ -5,9 +5,13 @@ edition = "2024"
 
 [dependencies]
 soft_keyboard_input = { workspace = true }
-bevy = { workspace = true }
+
 serde_json = { workspace = true }
 ehttp = { workspace = true }
 shared = { workspace = true }
 auth_system_structs = { workspace = true }
+bevy = { workspace = true }
 
+# Android, and I assume wasm, fail to compile with system clipboard enabled, so selective targeting
+[target.'cfg(not(any(target_arch = "wasm32", target_os = "android")))'.dependencies]
+bevy = { workspace = true, features = ["system_clipboard"]}

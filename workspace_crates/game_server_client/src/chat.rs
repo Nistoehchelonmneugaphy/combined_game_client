@@ -1,7 +1,7 @@
 use std::collections::{HashMap, VecDeque};
 
 use bevy::prelude::*;
-use game_server_structs::websocket_communication::ServerMessage;
+use game_server_public_api::websocket_communication::ServerMessage;
 use shared::spawn_text_field;
 
 pub struct ChatPlugin;

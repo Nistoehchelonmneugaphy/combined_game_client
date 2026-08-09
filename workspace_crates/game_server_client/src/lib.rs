@@ -1,7 +1,7 @@
 use auth_system_structs::public_api::{CreateJoinTokenRequest, CreateJoinTokenResponse};
 use bevy::prelude::*;
 use bevy_mod_reqwest::{BevyReqwest, JsonResponse, ReqwestErrorEvent, ReqwestPlugin};
-use game_server_structs::{
+use game_server_public_api::{
     FinalLoginStepRequest, FinalLoginStepResponse, ServerNonceResponse, get_server_path,
     websocket_communication::{ClientMessage, ServerMessage},
 };
@@ -109,7 +109,7 @@ fn get_server_cookie(
 ) {
     let url = get_server_path(
         &game_server_url,
-        game_server_structs::ServerAction::FinalLoginStep,
+        game_server_public_api::ServerAction::FinalLoginStep,
     );
     let req = client
         .post(url)
@@ -199,7 +199,7 @@ fn get_nonce(mut client: BevyReqwest, game_server_url: String, session_token: St
     // step 1: get nonce from server
     let url = get_server_path(
         &game_server_url,
-        game_server_structs::ServerAction::InitLogin,
+        game_server_public_api::ServerAction::InitLogin,
     );
     let req = client.post(url).build().unwrap();
     client

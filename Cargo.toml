@@ -11,19 +11,23 @@ debug = false
 [workspace.dependencies]
 rustls = { version = "0.23.42", default-features = false }
 bevy = { version = "0.19.0", features = [
-    "free_camera","debug", "serialize", "mp3", "bevy_clipboard", "system_clipboard",    
+    "free_camera","debug", "serialize", "mp3", "bevy_clipboard",   
     ] }
 
 
-tokio = { version = "1.53.1", features = ["full"] }
+tokio = { version = "1.53.1", default-features = false }
+# temporarily exclude in order to solve wasm compilation errors due to unsupported wasm  target.
+# match_client = { git = "ssh://git@github.com/Aeroel/match_system.git" }
+tokio-tungstenite = { version = "0.30.0", features = [ "rustls-tls-webpki-roots" ] } 
+
 ehttp = "0.7.1"
 bevy_mod_reqwest = { git = "ssh://git@github.com/Aeroel/bevy_mod_reqwest.git", features = [ "json", "rustls-tls", "log" ] }
 serde = { version = "1.0.229", features = ["derive"]}
 serde_json = "1.0.151"
 launcher = { path = "workspace_crates/launcher" }
 game_server_client = { path = "workspace_crates/game_server_client" }
-game_server_structs = { git = "ssh://git@github.com/Aeroel/game_server.git" }
-match_client = { git = "ssh://git@github.com/Aeroel/match_system.git" }
+game_server_public_api = { git = "ssh://git@github.com/Aeroel/game_server.git" }
+
 soft_keyboard_input = { path = "workspace_crates/soft_keyboard_input" }
 web = { path = "workspace_crates/web" }
 startup = { path = "workspace_crates/startup" }
@@ -35,7 +39,7 @@ config = "0.15.25"
 dotenvy = "0.15.7"
 envy = "0.4.2"
 git-version = "0.3.9"
-rand = "0.10.2"
+# rand = "0.10.2"
 anyhow = "1.0.104"
 tracing = "0.1.44"
 

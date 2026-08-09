@@ -1,4 +1,4 @@
-use game_server_structs::websocket_communication::{ClientMessage, ServerMessage};
+use game_server_public_api::websocket_communication::{ClientMessage, ServerMessage};
 use tokio::sync::mpsc;
 use bevy::prelude::*;
 

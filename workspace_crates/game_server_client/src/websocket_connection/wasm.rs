@@ -4,7 +4,7 @@ use crate::websocket_connection::common::{
     BreakOrContinue, WsMessage, handle_incoming, serialize_outgoing,
 };
 use futures_util::{SinkExt, StreamExt};
-use game_server_structs::websocket_communication::{ClientMessage, ServerMessage};
+use game_server_public_api::websocket_communication::{ClientMessage, ServerMessage};
 use gloo_net::websocket::{Message, futures::WebSocket};
 use tokio::sync::mpsc; // tokio's mpsc works fine on wasm32 (it's just a lock-free queue, no OS threads needed)
 
@@ -23,7 +23,7 @@ async fn ws_loop(
     mut to_server_rx: mpsc::UnboundedReceiver<ClientMessage>,
     from_server_tx: mpsc::UnboundedSender<ServerMessage>,
 ) {
-    let encoded_cookie = game_server_structs::websocket_communication::pack_cookie(cookie);
+    let encoded_cookie = game_server_public_api::websocket_communication::pack_cookie(cookie);
 
     // apparently, sec-websocket-protocol is the only header that browsers allow websockets to send?
     // so, unlike native, I have  to either 1) send token over query string along with url or 2) send it after establishing ws connection (don't really feel like it) or 3) use the sec-websocket-protocol header, which normally has a different purpose.

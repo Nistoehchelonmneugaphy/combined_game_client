@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use game_server_structs::websocket_communication::ServerMessage;
+use game_server_public_api::websocket_communication::ServerMessage;
 use shared::{AppState, MatchStateResource, set_title};
 #[derive(Resource, Clone)]
 pub struct InQueue(pub bool);

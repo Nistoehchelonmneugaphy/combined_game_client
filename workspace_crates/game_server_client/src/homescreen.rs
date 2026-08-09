@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use game_server_structs::websocket_communication::{
+use game_server_public_api::websocket_communication::{
     ClientMessage, ClientMessageContent, ServerMessage,
 };
 use shared::set_title;
@@ -63,7 +63,7 @@ pub fn process_internal_message(
                 client_message_writer.write(ClientMessage {
                     cookie: cookie.clone(),
                     content: ClientMessageContent::JoinMatchmaking {
-                        queue_type: game_server_structs::websocket_communication::QueueType::Hunter,
+                        queue_type: game_server_public_api::websocket_communication::QueueType::Hunter,
                     },
                 });
             }
@@ -74,7 +74,7 @@ pub fn process_internal_message(
                     cookie: cookie.clone(),
                     content: ClientMessageContent::JoinMatchmaking {
                         queue_type:
-                            game_server_structs::websocket_communication::QueueType::Survivor,
+                            game_server_public_api::websocket_communication::QueueType::Survivor,
                     },
                 });
             }

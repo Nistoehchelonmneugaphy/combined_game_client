@@ -4,7 +4,7 @@ use crate::websocket_connection::common::{
     BreakOrContinue, WsMessage, handle_incoming, serialize_outgoing,
 };
 use futures_util::{SinkExt, StreamExt, stream::SplitSink};
-use game_server_structs::websocket_communication::{ClientMessage, ServerMessage};
+use game_server_public_api::websocket_communication::{ClientMessage, ServerMessage};
 use http::HeaderValue;
 use tokio::{net::TcpStream, sync::mpsc};
 use tokio_tungstenite::{
