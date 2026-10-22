@@ -16,7 +16,9 @@ sudo apt install -y \
 
 # Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-. "$HOME/.cargo/env"  
+. "$HOME/.cargo/env"
+
+# Windows target  
  rustup target add x86_64-pc-windows-msvc
 
 # I guess wasm probably unneeded since handled automatically elsewhere
@@ -103,5 +105,43 @@ sdk install gradle
 
 source ~/.bashrc
 echo "Installed sdk and ndk and added to path, and also installed sdkman"
+```
+
+# 1. Android compilation 
+```bash
+# first step
+ cargo ndk -P 26 -t arm64-v8a build -o /home/user1/combined_game_client/workspace_crates/main/android_build/app/src/main/jniLibs -p main --release
+
+# second is to clean if needed
+/home/user1/combined_game_client/workspace_crates/main/android_build/gradlew clean --project-dir /home/user1/combined_game_client/workspace_crates/main/android_build
+
+# assemble apk
+/home/user1/combined_game_client/workspace_crates/main/android_build/gradlew assembleDebug --project-dir /home/user1/combined_game_client/workspace_crates/main/android_build
+
+# compilation complete.
+# The resulting apk is located at /home/user1/combined_game_client/workspace_crates/main/android_build/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Installing the apk:
+
+If using a remote machine, you can transfer the apk to a physical phone however you want, like using scp, 
+one way is to use remote adb:
+Start adb on local machine: 
+```bash
+adb devices
+```
+(starts if not started and shows connected phones)
+
+Then connect to remote:
+```bash
+ssh  -R 5037:localhost:5037 vps_dev
+```
+
+In another termibal tab on the local machine check that the list is same as on remote when using adb devices
+So, now all adb commands work the same on remote and local.
+
+```bash
+# push install apk using adb to phone
+adb install -r /home/user1/combined_game_client/workspace_crates/main/android_build/app/build/outputs/apk/debug/app-debug.apk
 ```
 
