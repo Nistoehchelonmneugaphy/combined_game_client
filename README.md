@@ -1,11 +1,12 @@
 **Compilation**
+
 I will list the following targets:
 1. Android
 2. Web
 3. Cross-compilation for Windows on Linux using cargo-xwin
 
 
-Stuff to install before compilation:
+Stuff to install beforehand:
 ```bash
 sudo apt install -y \
     ninja-build build-essential pkg-config \
