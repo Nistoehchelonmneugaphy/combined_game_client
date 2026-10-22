@@ -145,3 +145,30 @@ So, now all adb commands work the same on remote and local.
 adb install -r /home/user1/combined_game_client/workspace_crates/main/android_build/app/build/outputs/apk/debug/app-debug.apk
 ```
 
+# 2. Web
+```bash
+# to unpack assets.zip/assets/* into assets/
+unzip -o assets.zip -d .
+```
+```bash
+trunk build --release
+# when dev for convenience
+trunk serve --address 0.0.0.0 --port 3456 --release
+``` 
+Reminder: the auth server needs this header so the web app running in the browser can contact it. 
+At least using testing. I assume in production a more granular header is needed? Or public facing auth servers can use this?
+
+```nginx
+add_header 'Access-Control-Allow-Origin' '*';
+```
+
+
+# 3. Windows on Linux using cargo-xwin
+
+If you are running Rust on a Linux machine, you can compile a native Windows executable using cargo-xwin:
+
+```bash
+cargo xwin build --target x86_64-pc-windows-msvc --release
+```
+
+The first time cargo-xwin is ran, it will install Windows SDK stuff, which may take a while. If it hangs for a long time on downloading/unpacking something, try restarting the command.
