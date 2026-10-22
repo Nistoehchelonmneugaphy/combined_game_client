@@ -5,11 +5,15 @@ I will list the following targets:
 3. Cross-compilation for Windows on Linux using cargo-xwin
 
 
-Packages I install before any compilation:
+Stuff to install before compilation:
+```bash
+sudo apt install -y \
+    ninja-build build-essential pkg-config \
+    libssl-dev openssl  libasound2-dev \
+    alsa-base libudev-dev g++ libx11-dev libwayland-dev \
+    libxkbcommon-dev  clang lld llvm
 
-sudo apt install -y ninja-build build-essential pkg-config libssl-dev openssl  libasound2-dev  alsa-base libudev-dev g++ libx11-dev libwayland-dev libxkbcommon-dev  clang lld llvm
-
-# rust installation
+# Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 . "$HOME/.cargo/env"  
  rustup target add x86_64-pc-windows-msvc
@@ -18,20 +22,19 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 # Won't hurt to do it here first, though
  rustup target add wasm32-unknown-unknown
 
-# android. For compilation, cargo-ndk will auto-install target, but vscode will complain if I start vscode before I have run ndk at least once, so since I don't necessarily want to do that (usually I open vscode first before using ndk), I guess I will manually call target android here
+# android. For compilation, cargo-ndk will auto-install target,
+# but vscode will complain if I start vscode before I have run ndk at least once (because ndk autoinstalls the target if needed, I guess),
+# so since I don't necessarily want to do that (usually I open vscode first before using ndk),
+# I guess I will manually call target android here
 
 rustup target add aarch64-linux-android
 
-# Install xwin (if gonna cross compile for windows)
+# Install cargo-xwin (if gonna cross compile for windows)
 cargo install cargo-xwin
-
-
-
-
-
 
 # for web compilation
 # --locked because of broken dependencies, idea to use --locked from https://github.com/trunk-rs/trunk/issues/1084#issuecomment-5042578031
+# I asume this was fixed by now, TODO: check if needed
 
 cargo install --locked trunk
 
@@ -40,7 +43,7 @@ cargo install --locked trunk
 cargo install wasm-opt
 
 
-# for compiling on android.
+# For compiling on android
 # noninteractive because otherwise google-android-platform-tools-installer asks to pick a mirror manually
 sudo DEBIAN_FRONTEND=noninteractive apt install -y google-android-platform-tools-installer libgtk-3-dev lldb squashfs-tools openjdk-21-jdk-headless kotlin gradle
 
@@ -99,4 +102,5 @@ sdk install gradle
 
 source ~/.bashrc
 echo "Installed sdk and ndk and added to path, and also installed sdkman"
+```
 
